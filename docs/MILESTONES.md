@@ -36,10 +36,10 @@
 - [x] Mobile drawers (dual-nav)
 - [x] Mobile-device friendly verification
 
-### Phase 5 — Integration, Quality & Release (Target: Week 5) ⏳ PENDING
-- [ ] Playwright E2E tests passing
-- [ ] Docker Compose validated
-- [ ] Version tag (`v0.2.0` set)
-- [ ] `CHANGELOG.md` updated (`changelog-curator`)
-- [ ] `HANDOFF.md` milestone checkpoint
-- [ ] Quality review (`verification-before-completion`)
+### Phase 5 — Integration, Quality & Release (Target: Week 5) ✅ COMPLETED
+- [x] Playwright E2E tests passing
+- [x] Docker Compose validated
+- [x] Version tag (`v0.4.0` set)
+- [x] `CHANGELOG.md` updated (`changelog-curator`)
+- [x] `HANDOFF.md` milestone checkpoint
+- [x] Quality review (`verification-before-completion`)
