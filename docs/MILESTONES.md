@@ -16,8 +16,8 @@
 - [x] USGS adapter stubbed (`backend/ingestion/adapters.py`)
 - [x] `data/eq-canada.db` schema created (WAL, indexes)
 - [x] `data/eq-china.db` schema created (WAL, indexes)
-- [ ] Initial historical archive loaded (minimum records per region)
-- [ ] Deduplication engine implemented (≤25 km, ±60 s)
+- [x] Initial historical archive loaded (minimum records per region)
+- [x] Deduplication engine implemented (≤25 km, ±60 s)
 
 ### Phase 3 — Backend & API (Target: Week 3)
 - [ ] FastAPI service scaffolded
