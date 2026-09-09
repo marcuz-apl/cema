@@ -2,20 +2,20 @@
 
 ## Milestone Schema (per changelog-curator skill)
 
-### Phase 1 — Foundation & Design Lock (Target: Week 1)
-- [ ] PRD.md finalized (this file + docs/PRD.md)
-- [ ] AGENTS.md created
-- [ ] README.md created
-- [ ] `alfazen-coding` skills verified installed
-- [ ] Milestones defined (this file)
-- [ ] Design lock: header layout, telemetry HUD, filter bar, floating MAG / Layers / Player bars confirmed
+### Phase 1 — Foundation & Design Lock (Target: Week 1) ✅ COMPLETED
+- [x] PRD.md finalized (root folder)
+- [x] AGENTS.md created (root folder)
+- [x] README.md created (root folder)
+- [x] `alfazen-coding` skills verified installed
+- [x] Milestones defined (this file + docs/ADVISORY.md + docs/HANDOFF.md)
+- [x] Design lock: header layout, telemetry HUD, filter bar, floating MAG / Layers / Player bars confirmed (see PRD.md section 4 + docs/ADVISORY.md)
 
-### Phase 2 — Data & Persistence (Target: Week 2)
-- [ ] NRCan adapter designed and stubbed
-- [ ] CENC adapter designed and stubbed
-- [ ] USGS adapter stubbed
-- [ ] `data/eq-canada.db` schema created (WAL, indexes)
-- [ ] `data/eq-china.db` schema created (WAL, indexes)
+### Phase 2 — Data & Persistence (Target: Week 2) ⏳ IN PROGRESS
+- [x] NRCan adapter designed and stubbed (`backend/ingestion/adapters.py`)
+- [x] CENC adapter designed and stubbed (`backend/ingestion/adapters.py`)
+- [x] USGS adapter stubbed (`backend/ingestion/adapters.py`)
+- [x] `data/eq-canada.db` schema created (WAL, indexes)
+- [x] `data/eq-china.db` schema created (WAL, indexes)
 - [ ] Initial historical archive loaded (minimum records per region)
 - [ ] Deduplication engine implemented (≤25 km, ±60 s)
 
