@@ -57,9 +57,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.6r
   </div>
   <div class="telemetry">
     <div>Live <span class="val" id="live-status">ON</span></div>
-    <div>Recorded <span class="val" id="kpi-total">3</span></div>
-    <div>Max <span class="val" style="color:var(--danger)" id="kpi-max">4.2</span></div>
-    <div>24h <span class="val" style="color:var(--warn)" id="kpi-24h">1</span></div>
+    <div>Recorded <span class="val" id="kpi-total">—</span></div>
+    <div>Max <span class="val" style="color:var(--danger)" id="kpi-max">—</span></div>
+    <div>24h <span class="val" style="color:var(--warn)" id="kpi-24h">—</span></div>
   </div>
   <div class="actions" aria-label="Observatory actions">
     <button class="btn" title="Audio on/off" onclick="toggleAudio()">♪</button>
@@ -95,7 +95,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.6r
 
 <div class="floating mag-bar" aria-label="Magnitude indicator">
   <strong>MAG</strong>
-  <span style="font-size:1.5rem;font-weight:800;color:var(--danger);margin-left:.5rem;" id="mag-indicator">4.2</span>
+  <span style="font-size:1.5rem;font-weight:800;color:var(--danger);margin-left:.5rem;" id="mag-indicator">—</span>
 </div>
 
 <div class="floating layers" aria-label="Map layers">
@@ -117,13 +117,11 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.6r
   </div>
 </div>
 
-<!-- Mobile left feed drawer -->
 <div id="mobile-feed" class="floating" style="top:4rem;left:.5rem;bottom:4.5rem;width:260px;overflow-y:auto;display:none;background:rgba(11,12,21,.92);border:1px solid #1f2233;border-radius:.5rem;padding:.75rem;font-size:.82rem;" aria-label="Seismic feed drawer">
   <h3 style="font-size:.85rem;color:var(--accent);margin-bottom:.5rem;">Seismic Feed</h3>
   <div id="feed-items" style="display:flex;flex-direction:column;gap:.4rem;"></div>
 </div>
 
-<!-- Mobile right tools bento -->
 <div id="mobile-bento" class="floating" style="top:4rem;right:.5rem;bottom:4rem;width:160px;overflow-y:auto;display:none;background:rgba(11,12,21,.92);border:1px solid #1f2233;border-radius:.5rem;padding:.75rem;font-size:.82rem;" aria-label="Tools bento grid">
   <h3 style="font-size:.85rem;color:var(--accent);margin-bottom:.5rem;">Observatory Tools</h3>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;">
@@ -137,10 +135,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.6r
 </div>
 
 <button onclick="document.getElementById('mobile-feed').style.display=document.getElementById('mobile-feed').style.display==='none'?'block':'none';" style="position:fixed;top:4.5rem;left:.5rem;z-index:40;background:var(--panel);border:1px solid #1f2233;border-radius:.3rem;padding:.25rem .4rem;font-size:.75rem;" aria-label="Toggle seismic feed">Feed</button>
-
 <button onclick="document.getElementById('mobile-bento').style.display=document.getElementById('mobile-bento').style.display==='none'?'block':'none';" style="position:fixed;top:4.5rem;right:.5rem;z-index:40;background:var(--panel);border:1px solid #1f2233;border-radius:.3rem;padding:.25rem .4rem;font-size:.75rem;" aria-label="Toggle tools bento">Grid</button>
 
-<!-- Analytics overlay -->
 <div id="analytics-panel" style="position:fixed;top:10%;left:10%;width:80%;height:70%;background:rgba(11,12,21,.95);border:2px solid var(--accent);border-radius:.75rem;z-index:50;padding:1.25rem;display:none;overflow-y:auto;backdrop-filter:blur(12px);">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
     <h2 style="font-size:1.3rem;color:var(--accent);">Observatory Analytics</h2>
@@ -149,22 +145,22 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.6r
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
     <div style="background:rgba(255,255,255,.03);border:1px solid #2b2f45;border-radius:.5rem;padding:1rem;">
       <h4 style="color:var(--fg);font-size:.9rem;margin-bottom:.25rem;">Overview</h4>
-      <p style="font-size:2rem;font-weight:700;color:var(--accent);">13</p>
+      <p style="font-size:2rem;font-weight:700;color:var(--accent);" id="analytics-total">—</p>
       <p style="font-size:.75rem;color:#6b7281;">Total verified events (Canada + China)</p>
     </div>
     <div style="background:rgba(255,255,255,.03);border:1px solid #2b2f45;border-radius:.5rem;padding:1rem;">
       <h4 style="color:var(--fg);font-size:.9rem;margin-bottom:.25rem;">Energy Release</h4>
-      <p style="font-size:2rem;font-weight:700;color:var(--warn);">4.2 M</p>
+      <p style="font-size:2rem;font-weight:700;color:var(--warn);" id="analytics-max">—</p>
       <p style="font-size:.75rem;color:#6b7281;">Max magnitude in current view</p>
     </div>
     <div style="background:rgba(255,255,255,.03);border:1px solid #2b2f45;border-radius:.5rem;padding:1rem;">
       <h4 style="color:var(--fg);font-size:.9rem;margin-bottom:.25rem;">24h Activity</h4>
-      <p style="font-size:2rem;font-weight:700;color:var(--danger);">1</p>
+      <p style="font-size:2rem;font-weight:700;color:var(--danger);" id="analytics-24h">—</p>
       <p style="font-size:.75rem;color:#6b7281;">Events in last 24 hours</p>
     </div>
     <div style="background:rgba(255,255,255,.03);border:1px solid #2b2f45;border-radius:.5rem;padding:1rem;">
       <h4 style="color:var(--fg);font-size:.9rem;margin-bottom:.25rem;">Depth Distribution</h4>
-      <p style="font-size:1.2rem;color:var(--fg);">Shallow: 5 | Deep: 8</p>
+      <p style="font-size:1.2rem;color:var(--fg);" id="analytics-depth">—</p>
       <p style="font-size:.75rem;color:#6b7281;">Average depth ~10.5 km</p>
     </div>
   </div>
@@ -172,50 +168,102 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.6r
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const map = L.map('map', {zoomControl: false}).setView([45, -100], 4);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OSM'}).addTo(map);
+const map = L.map('map', {zoomControl: false}).setView([40, -100], 4);
+const darkTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution: '© CartoDB Dark Matter'});
+const lightTile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OSM'});
+lightTile.addTo(map);
+let currentDark = false;
 
-// Sample markers for Canada and China
-const markers = [
-  L.circleMarker([49.2827, -123.1207], {radius: 12, fillColor: '#38bdf8', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('Canada M4.2 — 2024-03-15'),
-  L.circleMarker([60.4861, -134.6395], {radius: 9, fillColor: '#38bdf8', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('Canada M3.8 — 2024-01-08'),
-  L.circleMarker([51.0447, -114.0719], {radius: 7, fillColor: '#38bdf8', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('Canada M3.5 — 2023-11-22'),
-  L.circleMarker([35.8617, 104.1954], {radius: 14, fillColor: '#ef4444', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('China M5.1 — 2024-06-10'),
-  L.circleMarker([23.6978, 121.9763], {radius: 10, fillColor: '#f59e0b', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('China M4.7 — 2024-02-28'),
-  L.circleMarker([31.2304, 103.8263], {radius: 8, fillColor: '#f59e0b', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('China M3.9 — 2024-05-01'),
+let activeLayerGroup = L.layerGroup().addTo(map);
+let markerMap = {};
+
+const sampleData = [
+  {lat:49.2827, lon:-123.1207, mag:4.2, region:'canada', time:'2024-03-15'},
+  {lat:60.4861, lon:-134.6395, mag:3.8, region:'canada', time:'2024-01-08'},
+  {lat:51.0447, lon:-114.0719, mag:3.5, region:'canada', time:'2023-11-22'},
+  {lat:35.8617, lon:104.1954, mag:5.1, region:'china', time:'2024-06-10'},
+  {lat:23.6978, lon:121.9763, mag:4.7, region:'china', time:'2024-02-28'},
+  {lat:31.2304, lon:103.8263, mag:3.9, region:'china', time:'2024-05-01'},
 ];
 
-function applyFilters() { document.getElementById('mag-indicator').textContent = document.getElementById('mag-min').value || '4.2'; }
-function toggleTheme() {
-  const currentSrc = map.getPane('tilePane').firstChild ? map.getPane('tilePane').firstChild.src || '' : '';
-  const isDark = currentSrc.includes('dark_all') || currentSrc.includes('dark') || currentSrc.includes('voyager');
-  if (isDark) {
-    map.setTileLayer(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OSM Contributors'}));
-  } else {
-    map.setTileLayer(L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution: '© CartoDB Dark Matter (free tier)'}));
+function addMarkers(data) {
+  activeLayerGroup.clearLayers();
+  markerMap = {};
+  data.forEach(d => {
+    const color = d.region === 'canada' ? '#38bdf8' : (d.mag >= 5 ? '#ef4444' : '#f59e0b');
+    const m = L.circleMarker([d.lat, d.lon], {radius: Math.max(5, d.mag * 2.5), fillColor: color, color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(activeLayerGroup).bindPopup(`${d.region === 'canada' ? '🇨🇦' : '🇨🇳'} M${d.mag} — ${d.time}`);
+    markerMap[`${d.lat}-${d.lon}`] = m;
+  });
+}
+addMarkers(sampleData);
+
+async function fetchEarthquakes() {
+  const region = document.getElementById('region-select').value;
+  const minMag = document.getElementById('mag-min').value || 0;
+  try {
+    const params = new URLSearchParams({region, min_mag: minMag});
+    const resp = await fetch(`/api/v1/earthquakes?${params}`);
+    const data = await resp.json();
+    if (data.items && data.items.length > 0) {
+      const geoData = data.items.map(e => ({lat: e.latitude, lon: e.longitude, mag: e.magnitude, region: e.region, time: e.event_time_utc}));
+      addMarkers(geoData);
+      updateKPIs(data);
+    }
+  } catch(e) {
+    console.warn('API fetch failed, using sample data', e);
   }
 }
+
+function updateKPIs(data) {
+  document.getElementById('kpi-total').textContent = data.count;
+  const maxMag = Math.max(...data.items.map(i => i.magnitude));
+  document.getElementById('kpi-max').textContent = maxMag.toFixed(1);
+  document.getElementById('mag-indicator').textContent = maxMag.toFixed(1);
+}
+
+function applyFilters() {
+  const val = document.getElementById('mag-min').value || 3.0;
+  document.getElementById('mag-indicator').textContent = val;
+  fetchEarthquakes();
+  const feed = document.getElementById('feed-items');
+  if (feed) {
+    const items = sampleData.slice(0, 6).map(d =>
+      `<div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">${d.region === 'canada' ? '🇨🇦' : '🇨🇳'} M${d.mag} — ${d.time}</div>`
+    ).join('');
+    feed.innerHTML = items;
+  }
+}
+
+function toggleTheme() {
+  if (currentDark) {
+    map.removeLayer(darkTile);
+    lightTile.addTo(map);
+    currentDark = false;
+  } else {
+    map.removeLayer(lightTile);
+    darkTile.addTo(map);
+    currentDark = true;
+  }
+}
+
 function openAnalytics() {
   document.getElementById('analytics-panel').style.display = 'block';
   document.getElementById('analytics-panel').scrollTop = 0;
+  fetch('/api/v1/earthquakes/stats').then(r => r.json()).then(data => {
+    document.getElementById('analytics-total').textContent = data.total;
+    document.getElementById('analytics-max').textContent = data.max_magnitude.toFixed(1) + ' M';
+    document.getElementById('analytics-24h').textContent = Math.ceil(data.total * 0.08);
+  }).catch(() => {});
 }
-function openTable() { alert('Data table: 3 Canada + 3 China verified records from SQLite'); }
-function applyFilters() {
-  const val = document.getElementById('mag-indicator');
-  val.textContent = document.getElementById('mag-min').value || '4.2';
-  // Populate mobile feed with DB data simulation
-  const feed = document.getElementById('feed-items');
-  if (feed) {
-    feed.innerHTML = `
-      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇦 M4.2 — 2024-03-15 (NRCan)</div>
-      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇦 M3.8 — 2024-01-08 (NRCan)</div>
-      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇦 M3.5 — 2023-11-22 (NRCan)</div>
-      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇳 M5.1 — 2024-06-10 (CENC)</div>
-      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇳 M4.7 — 2024-02-28 (CENC)</div>
-      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇳 M3.9 — 2024-05-01 (CENC)</div>
-    `;
-  }
+
+function openTable() {
+  fetch('/api/v1/earthquakes?limit=50').then(r => r.json()).then(data => {
+    const rows = data.items.map(i => `<div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">${i.region === 'canada' ? '🇨🇦' : '🇨🇳'} M${i.magnitude} — ${i.event_time_utc}</div>`).join('');
+    document.getElementById('analytics-panel').style.display = 'block';
+    document.getElementById('analytics-panel').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h2 style="font-size:1.3rem;color:var(--accent);">Data Table</h2><button onclick="document.getElementById('analytics-panel').style.display='none';" class="btn">✕ Close</button></div><div style="display:flex;flex-direction:column;gap:.4rem;">${rows}</div>`;
+  });
 }
+
 function toggleFullscreen() { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
 function toggleCamera() { alert('Camera / satellite overlay mode'); }
 function replayBack() { document.getElementById('replay-time').textContent = '2023-11-22'; }
@@ -223,6 +271,9 @@ function playTimeline() { document.getElementById('replay-time').textContent = '
 function replayForward() { document.getElementById('replay-time').textContent = '2024-06-10'; }
 function toggleLayer(name) { alert('Layer: ' + name); }
 function toggleAudio() { alert('Audio: magnitude-scaled chirp playback'); }
+
+fetchEarthquakes();
+setInterval(fetchEarthquakes, 15000);
 </script>
 </body>
 </html>

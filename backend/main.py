@@ -1,54 +1,165 @@
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, Query
+from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
+from contextlib import asynccontextmanager
 import sqlite3, os, json, time
 
-app = FastAPI(title="CEMA API", version="v0.2.0")
-
-app = FastAPI(title="CEMA API", version="v0.2.0")
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
 DB_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+DB_FILES = ["eq-canada.db", "eq-china.db"]
+
+def init_db():
+    os.makedirs(DB_DIR, exist_ok=True)
+    for db_file in DB_FILES:
+        path = os.path.join(DB_DIR, db_file)
+        if not os.path.exists(path):
+            conn = sqlite3.connect(path)
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("CREATE TABLE IF NOT EXISTS earthquakes (id INTEGER PRIMARY KEY AUTOINCREMENT, region TEXT, event_time_utc TEXT, latitude REAL, longitude REAL, depth_km REAL, magnitude REAL, source TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_time ON earthquakes(event_time_utc)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_mag ON earthquakes(magnitude)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_lat_lon ON earthquakes(latitude, longitude)")
+            conn.commit()
+            conn.close()
+        else:
+            conn = sqlite3.connect(path)
+            conn.execute("PRAGMA journal_mode=WAL;")
+            count = conn.execute("SELECT COUNT(*) FROM earthquakes").fetchone()[0]
+            conn.close()
+            if count == 0:
+                seed_data = {
+                    "eq-canada.db": [("2024-03-15T14:32:00Z", 49.2827, -123.1207, 10.0, 4.2, "NRCan"), ("2024-01-08T09:15:00Z", 60.4861, -134.6395, 5.0, 3.8, "NRCan"), ("2023-11-22T22:05:00Z", 51.0447, -114.0719, 15.0, 3.5, "NRCan")],
+                    "eq-china.db": [("2024-06-10T03:45:00Z", 35.8617, 104.1954, 12.0, 5.1, "CENC"), ("2024-02-28T11:20:00Z", 23.6978, 121.9763, 8.0, 4.7, "CENC"), ("2024-05-01T16:55:00Z", 31.2304, 103.8263, 20.0, 3.9, "CENC")]
+                }
+                if db_file in seed_data:
+                    conn = sqlite3.connect(path)
+                    for r in seed_data[db_file]:
+                        conn.execute("INSERT OR IGNORE INTO earthquakes (region, event_time_utc, latitude, longitude, depth_km, magnitude, source) VALUES (?, ?, ?, ?, ?, ?, ?)", (db_file.replace("eq-","").replace(".db",""), r[0], r[1], r[2], r[3], r[4], r[5]))
+                    conn.commit()
+                    conn.close()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+app = FastAPI(title="CEMA API", version="0.5.0", lifespan=lifespan)
 
 class Earthquake(BaseModel):
-    id: int; region: str; event_time_utc: Optional[str] = None
-    latitude: Optional[float] = None; longitude: Optional[float] = None
-    depth_km: Optional[float] = None; magnitude: Optional[float] = None; source: Optional[str] = None
+    id: int
+    region: str
+    event_time_utc: str
+    latitude: float
+    longitude: float
+    depth_km: float
+    magnitude: float
+    source: str
+
+def get_db(region: Optional[str] = None):
+    if region and region != "all":
+        db_file = f"eq-{region}.db"
+        if db_file in DB_FILES:
+            return [db_file]
+        return []
+    return DB_FILES
+
+def query_db(db_file, min_mag, max_mag, limit, region_filter, start_date=None, end_date=None, bbox=None):
+    conn = sqlite3.connect(os.path.join(DB_DIR, db_file))
+    conn.row_factory = sqlite3.Row
+    sql = "SELECT * FROM earthquakes WHERE magnitude >= ? AND magnitude <= ?"
+    params = [min_mag, max_mag]
+    if start_date:
+        sql += " AND event_time_utc >= ?"
+        params.append(start_date)
+    if end_date:
+        sql += " AND event_time_utc <= ?"
+        params.append(end_date)
+    if region_filter:
+        sql += " AND region = ?"
+        params.append(region_filter)
+    if bbox:
+        sw_lat, sw_lon, ne_lat, ne_lon = bbox
+        sql += " AND latitude >= ? AND latitude <= ? AND longitude >= ? AND longitude <= ?"
+        params.extend([sw_lat, ne_lat, sw_lon, ne_lon])
+    sql += " ORDER BY event_time_utc DESC LIMIT ?"
+    params.append(limit)
+    rows = conn.execute(sql, params).fetchall()
+    results = [dict(r) for r in rows]
+    conn.close()
+    return results
 
 @app.get("/")
-async def root(): return {"service":"CEMA","version":"v0.2.0","regions":["canada","china"]}
+async def root():
+    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+@app.get("/api/v1/info")
+async def info():
+    return {"service": "CEMA", "version": "0.5.0", "regions": ["canada", "china"]}
 
 @app.get("/api/v1/earthquakes")
-async def list_earthquakes(region: Optional[str] = None, min_mag: float = 0, max_mag: float = 10, limit: int = 50):
-    results = []
-    for db_file in ["eq-canada.db", "eq-china.db"]:
+async def list_earthquakes(
+    region: Optional[str] = Query(None),
+    min_mag: float = Query(0),
+    max_mag: float = Query(10),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
+    bbox: Optional[str] = Query(None),
+    limit: int = Query(50),
+    offset: int = Query(0)
+):
+    bbox_coords = None
+    if bbox:
+        try:
+            parts = bbox.split(",")
+            bbox_coords = (float(parts[0]), float(parts[1]), float(parts[2]), float(parts[3]))
+        except (ValueError, IndexError):
+            bbox_coords = None
+    all_results = []
+    for db_file in get_db(region):
         region_filter = "canada" if "canada" in db_file else "china"
-        if region and region != region_filter and region != "all": continue
+        all_results.extend(query_db(db_file, min_mag, max_mag, limit + offset, region_filter, start_date, end_date, bbox_coords))
+    paginated = all_results[offset:offset + limit]
+    return {"region": region or "all", "count": len(all_results), "items": paginated}
+
+@app.get("/api/v1/earthquakes/stats")
+async def stats():
+    total = 0
+    per_region = {}
+    max_mag = 0
+    for db_file in DB_FILES:
         conn = sqlite3.connect(os.path.join(DB_DIR, db_file))
-        cursor = conn.execute("SELECT * FROM earthquakes WHERE magnitude >= ? AND magnitude <= ? ORDER BY event_time_utc DESC LIMIT ?", (min_mag, max_mag, limit))
-        for row in cursor.fetchall():
-            results.append({"id": row[0], "region": row[1], "event_time_utc": row[2], "latitude": row[3], "longitude": row[4], "depth_km": row[5], "magnitude": row[6], "source": row[7]})
-    return {"region": region or "both", "count": len(results), "items": results}
+        count = conn.execute("SELECT COUNT(*) FROM earthquakes").fetchone()[0]
+        mx = conn.execute("SELECT MAX(magnitude) FROM earthquakes").fetchone()[0]
+        total += count
+        if mx and mx > max_mag:
+            max_mag = mx
+        region = "canada" if "canada" in db_file else "china"
+        per_region[region] = count
+        conn.close()
+    return {"total": total, "per_region": per_region, "max_magnitude": max_mag, "regions": ["canada", "china"]}
 
 @app.get("/api/v1/live")
 async def live():
     def event_stream():
         while True:
-            yield f"data: {json.dumps({'status':'live','regions':['canada','china'],'timestamp':time.time()})}\n\n"
+            data = {"status": "live", "regions": ["canada", "china"], "timestamp": time.time()}
+            for db_file in DB_FILES:
+                conn = sqlite3.connect(os.path.join(DB_DIR, db_file))
+                row = conn.execute("SELECT * FROM earthquakes ORDER BY event_time_utc DESC LIMIT 1").fetchone()
+                conn.close()
+                if row:
+                    data["latest"] = {"region": row[1], "magnitude": row[6], "time": row[2]}
+            yield f"data: {json.dumps(data)}\n\n"
             time.sleep(5)
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 @app.get("/api/v1/boundaries/tectonic")
 async def tectonic_boundaries():
-    return {"type":"FeatureCollection","features":[]}
+    return JSONResponse(content={"type": "FeatureCollection", "features": []})
 
 @app.get("/api/v1/boundaries/provinces")
 async def provinces():
-    return {"type":"FeatureCollection","features":[]}
+    return JSONResponse(content={"type": "FeatureCollection", "features": []})
 
-@app.get("/api/v1/earthquakes/stats")
-async def stats():
-    total = 0
-    for db_file in ["eq-canada.db", "eq-china.db"]:
-        conn = sqlite3.connect(os.path.join(DB_DIR, db_file))
-        total += conn.execute("SELECT COUNT(*) FROM earthquakes").fetchone()[0]
-    return {"total": total, "regions": ["canada", "china"]}
+
