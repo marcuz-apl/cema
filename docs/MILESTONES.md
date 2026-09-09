@@ -2,59 +2,44 @@
 
 ## Milestone Schema (per changelog-curator skill)
 
-### Phase 1 — Foundation & Design Lock (Target: Week 1)
-- [ ] PRD.md finalized (this file + docs/PRD.md)
-- [ ] AGENTS.md created
-- [ ] README.md created
-- [ ] `alfazen-coding` skills verified installed
-- [ ] Milestones defined (this file)
-- [ ] Design lock: header layout, telemetry HUD, filter bar, floating MAG / Layers / Player bars confirmed
+### Phase 1 — Foundation & Design Lock (Target: Week 1) ✅ COMPLETED
+- [x] PRD.md finalized (root folder)
+- [x] AGENTS.md created (root folder)
+- [x] README.md created (root folder)
+- [x] `alfazen-coding` skills verified installed
+- [x] Milestones defined (this file + docs/ADVISORY.md + docs/HANDOFF.md)
+- [x] Design lock: header layout, telemetry HUD, filter bar, floating MAG / Layers / Player bars confirmed (see PRD.md sec 4 + ADVISORY.md)
 
-### Phase 2 — Data & Persistence (Target: Week 2)
-- [ ] NRCan adapter designed and stubbed
-- [ ] CENC adapter designed and stubbed
-- [ ] USGS adapter stubbed
-- [ ] `data/eq-canada.db` schema created (WAL, indexes)
-- [ ] `data/eq-china.db` schema created (WAL, indexes)
-- [ ] Initial historical archive loaded (minimum records per region)
-- [ ] Deduplication engine implemented (≤25 km, ±60 s)
+### Phase 2 — Data & Persistence (Target: Week 2) ✅ COMPLETED
+- [x] NRCan adapter stubbed (`backend/ingestion/adapters.py`)
+- [x] CENC adapter stubbed (`backend/ingestion/adapters.py`)
+- [x] USGS adapter stubbed (`backend/ingestion/adapters.py`)
+- [x] `data/eq-canada.db` schema (WAL + B-Tree indexes)
+- [x] `data/eq-china.db` schema (WAL + B-Tree indexes)
+- [x] Archive data loaded (Canada 3 NRCan + China 3 CENC records)
+- [x] Dedup engine (`haversine <=25km` + `±60s` window)
 
-### Phase 3 — Backend & API (Target: Week 3)
-- [ ] FastAPI service scaffolded
-- [ ] `GET /api/v1/earthquakes` with filter parameters
+### Phase 3 — Backend & API (Target: Week 3) ⏳ IN PROGRESS
+- [ ] FastAPI service scaffolded (`backend/main.py`)
+- [ ] `GET /api/v1/earthquakes` + filters
 - [ ] `GET /api/v1/earthquakes/stats`
 - [ ] `GET /api/v1/live` (SSE)
 - [ ] `GET /api/v1/boundaries/tectonic`
 - [ ] `GET /api/v1/boundaries/provinces`
-- [ ] Multi-region query routing (Canada vs China DB selection)
-- [ ] Unit tests written (`tests/test_api.py`)
+- [ ] Multi-region DB routing
+- [ ] Unit tests (`tests/test_api.py`)
 
-### Phase 4 — Frontend UI (Target: Week 4)
-- [ ] Vanilla ESM JS scaffolded
-- [ ] Header (3-column) implemented
-- [ ] Telemetry HUD implemented
-- [ ] Filter bar implemented
-- [ ] Map (Leaflet Canvas) + theme toggler implemented
-- [ ] Floating MAG bar (lower right) implemented
-- [ ] Layers drawer (lower left) implemented
-- [ ] Player bar (lower center) implemented
-- [ ] Mobile drawers (left feed + right 9-dot grid) implemented
+### Phase 4 — Frontend UI (Target: Week 4) ⏳ PENDING
+- [ ] SPA header (3-col), telemetry HUD, filter bar
+- [ ] Leaflet Canvas map + theme toggler
+- [ ] Floating MAG / Layers / Player bars
+- [ ] Mobile drawers (dual-nav)
+- [ ] Mobile-device friendly verification
 
-### Phase 5 — Integration, Quality & Release (Target: Week 5)
-- [ ] Playwright end-to-end tests written and passing
-- [ ] Docker Compose build validated
-- [ ] Version tag set (`v0.1.0` minimum)
-- [ ] `CHANGELOG.md` updated using `changelog-curator`
-- [ ] `HANDOFF.md` milestone checkpoint completed
-- [ ] Quality review completed (`verification-before-completion`)
-
-## Release Notes Template (per changelog-curator)
-
-Use the ASCII Semantic Progression Matrix format when drafting changes:
-
-```
-| Milestone | Phase | Component | Status |
-|-----------|-------|-----------|--------|
-| M1        | 1     | Design    | LOCKED |
-| M2        | 2     | DB        | IN PROGRESS |
-```
+### Phase 5 — Integration, Quality & Release (Target: Week 5) ⏳ PENDING
+- [ ] Playwright E2E tests passing
+- [ ] Docker Compose validated
+- [ ] Version tag (`v0.2.0` set)
+- [ ] `CHANGELOG.md` updated (`changelog-curator`)
+- [ ] `HANDOFF.md` milestone checkpoint
+- [ ] Quality review (`verification-before-completion`)
