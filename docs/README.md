@@ -12,6 +12,7 @@ CEMA is a real-time seismic observatory platform monitoring earthquake activity 
 - **Telemetry HUD**: Live clock, total events, max magnitude, 24-hour count.
 - **Analysis Tools**: Filter bar (date, magnitude, depth, region), data table, analytics suite, timeline playback with audio sonification.
 - **Responsive Design**: Desktop 3-column header; mobile dual-drawer navigation (left feed, right 9-dot bento tools).
+- **Mobile-Device Friendly**: Touch-optimized controls, responsive drawers, readable telemetry, and 60 fps interaction on phones and tablets.
 
 ## Technology Stack
 

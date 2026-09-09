@@ -39,6 +39,7 @@
 - [ ] Layers drawer (lower left) implemented
 - [ ] Player bar (lower center) implemented
 - [ ] Mobile drawers (left feed + right 9-dot grid) implemented
+- [ ] Mobile-device friendly verification completed: touch targets, responsive drawers, readable telemetry, 60 fps on mobile viewport
 
 ### Phase 5 — Integration, Quality & Release (Target: Week 5)
 - [ ] Playwright end-to-end tests written and passing
@@ -47,6 +48,7 @@
 - [ ] `CHANGELOG.md` updated using `changelog-curator`
 - [ ] `HANDOFF.md` milestone checkpoint completed
 - [ ] Quality review completed (`verification-before-completion`)
+- [ ] Mobile-device friendly end-to-end test passing (touch interaction, drawer navigation, telemetry readability on mobile viewport)
 
 ## Release Notes Template (per changelog-curator)
 
