@@ -49,7 +49,7 @@
       </div>
       <div class="kpi-sep"></div>
       <div class="kpi-item">
-        <span class="kpi-label">Max</span>
+        <span class="kpi-label">Max Mag</span>
         <span class="kpi-val kpi-val-danger" id="kpi-max">—</span>
       </div>
       <div class="kpi-sep"></div>
@@ -62,10 +62,6 @@
 
   <!-- Right: action dock -->
   <div class="header-right">
-    <div class="kpi-capsule-wrap mobile-hidden">
-      <span class="kpi-val" id="kpi-mobile-total">—</span>
-      <span class="kpi-label">events</span>
-    </div>
     <button class="icon-btn desktop-only" id="btn-sort" data-tip="Sort feed" aria-label="Sort events">
       <svg viewBox="0 0 24 24"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 4v16M17 4l3 3M17 4l-3 3"/></svg>
     </button>
@@ -117,10 +113,10 @@
     <!-- Floating filter bar -->
     <div class="filter-bar" id="filter-bar" role="search">
       <div class="region-toggle" id="region-toggle" aria-label="Region filter">
-        <button class="region-pill active" data-region="all" aria-pressed="true">
+        <button class="region-pill" data-region="all" aria-pressed="false">
           <span class="flag-emoji">🌍</span> All
         </button>
-        <button class="region-pill" data-region="canada" aria-pressed="false">
+        <button class="region-pill active" data-region="canada" aria-pressed="true">
           <span class="flag-emoji">🇨🇦</span> Canada
         </button>
         <button class="region-pill" data-region="china" aria-pressed="false">
@@ -150,13 +146,6 @@
       <span class="filter-count" id="filter-count"></span>
     </div>
 
-    <!-- Floating live magnitude readout -->
-    <div class="mag-readout" id="mag-readout" aria-label="Current maximum magnitude">
-      <span class="mag-label">Max Mag</span>
-      <span class="mag-value" id="mag-indicator">—</span>
-      <span class="mag-meta" id="mag-meta">Awaiting data…</span>
-    </div>
-
     <!-- Floating layer controls (draggable) -->
     <div class="layer-controls" id="layer-widget" aria-label="Map layers">
       <div class="layer-controls-header" id="layer-widget-drag">
@@ -175,7 +164,7 @@
             Tectonic Faults
           </span>
           <span class="toggle-switch">
-            <input type="checkbox" id="layer-tectonic" checked>
+            <input type="checkbox" id="layer-tectonic">
             <span class="track"></span>
           </span>
         </label>
@@ -186,6 +175,16 @@
           </span>
           <span class="toggle-switch">
             <input type="checkbox" id="layer-provinces" checked>
+            <span class="track"></span>
+          </span>
+        </label>
+        <label class="toggle-item" for="layer-aoi">
+          <span class="toggle-label">
+            <svg viewBox="0 0 24 24"><path d="M4 5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="3.2"/></svg>
+            AOI
+          </span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="layer-aoi">
             <span class="track"></span>
           </span>
         </label>
@@ -363,7 +362,7 @@
 
   /* ---------- State ---------- */
   const state = {
-    region: 'all',
+    region: 'canada',
     days: 0,
     minMag: 0,
     search: '',
@@ -403,12 +402,16 @@
     china: [[18.0, 73.5], [53.6, 135.1]]
   };
   const WORLD_VIEW = { center: [40, 90], zoom: 3 };
+  const CANADA_VIEW = [[43, -141.0], [68, -52.6]];
 
   function flyToRegion(region) {
     if (region === 'all') {
       map.flyTo(WORLD_VIEW.center, WORLD_VIEW.zoom, { duration: 1.2 });
     } else if (AOI[region]) {
-      map.flyToBounds(L.latLngBounds(AOI[region]), {
+      const bounds = region === 'canada'
+        ? L.latLngBounds(CANADA_VIEW)
+        : L.latLngBounds(AOI[region]);
+      map.flyToBounds(bounds, {
         duration: 1.2,
         padding: [48, 48],
         maxZoom: 4
@@ -428,8 +431,93 @@
   window.cemaMap = map;
 
   const markerLayer = L.layerGroup().addTo(map);
-  const faultLayer = L.layerGroup();
-  const provinceLayer = L.layerGroup();
+
+  /* ---------- Raster layers (geoJSON) ---------- */
+  const LAYER_STYLE = {
+    provinces: { color: '#8fa3bf', weight: 1.2, opacity: 0.75, fillColor: '#8fa3bf', fillOpacity: 0.05 },
+    faults: { color: '#f87171', weight: 1.4, opacity: 0.85 },
+    aoi: { color: '#38bdf8', weight: 2.4, opacity: 0.95, fillColor: '#38bdf8', fillOpacity: 0.08 }
+  };
+  const layerToggles = { tectonic: true, provinces: true, aoi: false };
+  const LAYER_FILE = { tectonic: 'faults', provinces: 'provinces', aoi: 'aoi' };
+  const layerCache = {};
+  const aoiGeom = [];
+  window.cemaLayers = layerCache;
+
+  async function getLayerGroup(kind, region) {
+    const key = `${kind}:${region}`;
+    if (layerCache[key]) return layerCache[key];
+    try {
+      const resp = await fetch(`/data/${LAYER_FILE[kind]}-${region}.geojson`);
+      if (!resp.ok) return null;
+      const geojson = await resp.json();
+      const layer = L.geoJSON(geojson, { style: () => LAYER_STYLE[kind] });
+      layerCache[key] = layer;
+      return layer;
+    } catch (err) {
+      console.warn(`Layer ${kind}/${region} failed:`, err);
+      return null;
+    }
+  }
+
+  function hideKind(kind) {
+    Object.entries(layerCache).forEach(([key, layer]) => {
+      if (key.startsWith(kind + ':') && layer._map) map.removeLayer(layer);
+    });
+  }
+
+  async function showKind(kind, region) {
+    const layer = await getLayerGroup(kind, region);
+    if (layer && !layer._map) layer.addTo(map);
+  }
+
+  async function refreshGeoLayers() {
+    for (const key of Object.keys(layerToggles)) {
+      hideKind(key);
+      if (!layerToggles[key]) continue;
+      if (key === 'aoi' && state.region === 'all') {
+        await showKind('aoi', 'canada');
+        await showKind('aoi', 'china');
+      } else {
+        await showKind(key, state.region);
+      }
+    }
+    syncAoiFilter();
+  }
+
+  /* ---------- AOI filter ---------- */
+  function collectAoiCoords() {
+    aoiGeom.length = 0;
+    const regions = state.region === 'all' ? ['canada', 'china'] : [state.region];
+    regions.forEach(r => {
+      const layer = layerCache[`aoi:${r}`];
+      if (!layer) return;
+      layer.eachLayer(l => {
+        const g = l.feature && l.feature.geometry;
+        if (!g || g.type !== 'MultiPolygon') return;
+        g.coordinates.forEach(poly => poly.forEach(ring => aoiGeom.push(ring)));
+      });
+    });
+  }
+
+  function pointInAoi(lat, lng) {
+    if (!aoiGeom.length) return true;
+    let inside = false;
+    aoiGeom.forEach(ring => {
+      let n = ring.length;
+      for (let i = 0, j = n - 1; i < n; j = i++) {
+        const [xi, yi] = ring[i], [xj, yj] = ring[j];
+        if ((yi > lat) !== (yj > lat) && lng < (xj - xi) * (lat - yi) / (yj - yi) + xi) inside = !inside;
+      }
+    });
+    return inside;
+  }
+
+  function syncAoiFilter() {
+    if (layerToggles.aoi) collectAoiCoords();
+    else aoiGeom.length = 0;
+    renderMarkers();
+  }
 
   /* ---------- Legend build ---------- */
   function buildLegend() {
@@ -472,16 +560,21 @@
 
   async function fetchStats() {
     const data = await api('/api/v1/earthquakes/stats');
-    $('kpi-total').textContent = data.total;
-    $('kpi-mobile-total').textContent = data.total;
-    $('kpi-max').textContent = data.max_magnitude ? data.max_magnitude.toFixed(1) : '—';
-    $('kpi-24h').textContent = Math.round((data.total || 0) * 0.08);
+    const r = data.per_region || {};
+    if (state.region === 'canada' || state.region === 'china') {
+      const s = r[state.region] || {};
+      $('kpi-total').textContent = s.total ?? '—';
+      $('kpi-24h').textContent = s.last_24h ?? 0;
+    } else {
+      $('kpi-total').textContent = data.total;
+      $('kpi-24h').textContent = Object.values(r).reduce((sum, x) => sum + (x.last_24h || 0), 0);
+    }
   }
 
   /* ---------- Rendering: markers ---------- */
   function renderMarkers() {
     markerLayer.clearLayers();
-    const data = filterBySearch(state.currentData || []);
+    const data = filterBySearch(state.currentData || []).filter(e => pointInAoi(e.latitude, e.longitude));
     data.forEach(e => {
       const color = magColor(e.magnitude);
       const radius = Math.max(5, Math.min(22, e.magnitude * 3.2));
@@ -572,24 +665,22 @@
     card.classList.add('active');
   }
 
-  /* ---------- Mag readout ---------- */
+  /* ---------- Mag readout (header Max Mag) ---------- */
   function updateMagReadout() {
     const items = state.currentData || [];
+    const magEl = $('kpi-max');
     if (!items.length) {
-      $('mag-indicator').textContent = '—';
-      $('mag-indicator').style.color = 'var(--fg-faint)';
-      $('mag-meta').textContent = 'No data';
+      magEl.textContent = '—';
+      magEl.style.color = 'var(--fg-faint)';
       return;
     }
-    let max = items[0], min = items[0];
+    let max = items[0];
     items.forEach(e => {
       if (e.magnitude > max.magnitude) max = e;
-      if (e.magnitude < min.magnitude) min = e;
     });
     const color = magColor(max.magnitude);
-    $('mag-indicator').textContent = max.magnitude.toFixed(1);
-    $('mag-indicator').style.color = color;
-    $('mag-meta').textContent = `${max.region} · ${new Date(max.event_time_utc).toLocaleDateString()}`;
+    magEl.textContent = max.magnitude.toFixed(1);
+    magEl.style.color = color;
   }
 
   function updateFilterCount() {
@@ -646,13 +737,36 @@
 
   /* ---------- Layer toggles ---------- */
   function toggleLayer(name, on) {
-    if (name === 'tectonic') {
-      if (on && !faultLayer._map) faultLayer.addTo(map);
-      else if (!on && faultLayer._map) map.removeLayer(faultLayer);
-    } else if (name === 'provinces') {
-      if (on && !provinceLayer._map) provinceLayer.addTo(map);
-      else if (!on && provinceLayer._map) map.removeLayer(provinceLayer);
-    }
+    layerToggles[name] = on;
+    const work = on
+      ? (async () => {
+          if (name === 'aoi' && state.region === 'all') {
+            await showKind('aoi', 'canada');
+            await showKind('aoi', 'china');
+          } else {
+            await showKind(name, state.region);
+          }
+        })()
+      : hideKind(name);
+    Promise.resolve(work).then(() => {
+      if (name === 'aoi') syncAoiFilter();
+    });
+  }
+
+  /* ---------- Widget containment ---------- */
+  function keepWidgetInside(widget) {
+    const host = document.querySelector('.map-viewport');
+    if (!host || !widget.offsetParent) return;
+    const mar = 8;
+    const hb = host.getBoundingClientRect();
+    const wb = widget.getBoundingClientRect();
+    const dx = Math.min(0, hb.right - mar - wb.right) + Math.max(0, hb.left + mar - wb.left);
+    const dy = Math.min(0, hb.bottom - mar - wb.bottom) + Math.max(0, hb.top + mar - wb.top);
+    if (!dx && !dy) return;
+    widget.style.left = (wb.left - hb.left + dx) + 'px';
+    widget.style.top = (wb.top - hb.top + dy) + 'px';
+    widget.style.right = 'auto';
+    widget.style.bottom = 'auto';
   }
 
   /* ---------- Draggable widgets ---------- */
@@ -690,6 +804,7 @@
     function onUp() {
       dragging = false;
       widget.classList.remove('dragging');
+      keepWidgetInside(widget);
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('mouseup', onUp);
@@ -896,14 +1011,47 @@
     }
   }
 
-  /* ---------- Collapse widgets ---------- */
-  function bindCollapse(btnId, widgetId) {
+  /* ---------- Collapse widgets + auto-hide ---------- */
+  function bindCollapse(btnId, widgetId, autoHideMs = 30000) {
     const btn = $(btnId);
     const widget = $(widgetId);
-    btn.addEventListener('click', () => {
-      const collapsed = widget.classList.toggle('collapsed');
+    let timer = null;
+
+    function setCollapsed(collapsed) {
+      widget.classList.toggle('collapsed', collapsed);
       btn.setAttribute('aria-expanded', String(!collapsed));
+      keepWidgetInside(widget);
+    }
+
+    function armTimer() {
+      clearTimeout(timer);
+      if (!widget.classList.contains('collapsed')) {
+        timer = setTimeout(() => setCollapsed(true), autoHideMs);
+      }
+    }
+
+    function wake() {
+      if (widget.classList.contains('collapsed')) setCollapsed(false);
+      armTimer();
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setCollapsed(!widget.classList.contains('collapsed'));
+      armTimer();
     });
+
+    widget.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.layer-controls-collapse, .map-legend-collapse')) return;
+      wake();
+    });
+    ['pointermove', 'pointerup', 'wheel'].forEach((evt) =>
+      widget.addEventListener(evt, () => {
+        if (!widget.classList.contains('collapsed')) armTimer();
+      })
+    );
+
+    armTimer();
   }
 
   /* ---------- Sort feed ---------- */
@@ -936,6 +1084,8 @@
       state.region = pill.dataset.region;
       flyToRegion(state.region);
       fetchEarthquakes();
+      fetchStats();
+      refreshGeoLayers();
     });
 
     /* Time presets */
@@ -968,7 +1118,7 @@
     });
 
     /* Layers */
-    ['layer-tectonic', 'layer-provinces'].forEach(id => {
+    ['layer-tectonic', 'layer-provinces', 'layer-aoi'].forEach(id => {
       $(id).addEventListener('change', e => toggleLayer(id.replace('layer-', ''), e.target.checked));
     });
 
@@ -1065,6 +1215,7 @@
     buildLegend();
     wireEvents();
     applyTheme('dark');
+    flyToRegion(state.region);
     document.getElementById('map-spinner').style.display = 'block';
     try {
       await Promise.all([fetchStats(), fetchEarthquakes()]);
@@ -1074,6 +1225,7 @@
       hideSpinner();
       showToast('Could not reach the CEMA API — is the backend running?', 'error');
     }
+    refreshGeoLayers().catch(() => {});
 
     /* Auto-refresh */
     setInterval(() => {

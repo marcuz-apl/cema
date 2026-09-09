@@ -51,6 +51,7 @@ app = FastAPI(title="CEMA API", version="0.5.0", lifespan=lifespan)
 
 app.include_router(admin_module.router)
 app.mount("/css", StaticFiles(directory=os.path.join(FRONTEND_DIR, "css")), name="css")
+app.mount("/data", StaticFiles(directory=os.path.join(FRONTEND_DIR, "data")), name="data")
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 class Earthquake(BaseModel):
@@ -136,18 +137,22 @@ async def list_earthquakes(
 @app.get("/api/v1/earthquakes/stats")
 async def stats():
     total = 0
-    per_region = {}
     max_mag = 0
+    per_region = {}
+    day_ago = "strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '-1 day')"
     for db_file in DB_FILES:
         conn = sqlite3.connect(os.path.join(DB_DIR, db_file))
         count = conn.execute("SELECT COUNT(*) FROM earthquakes").fetchone()[0]
         mx = conn.execute("SELECT MAX(magnitude) FROM earthquakes").fetchone()[0]
+        h24 = conn.execute(
+            f"SELECT COUNT(*) FROM earthquakes WHERE event_time_utc >= {day_ago}"
+        ).fetchone()[0]
+        conn.close()
         total += count
         if mx and mx > max_mag:
             max_mag = mx
         region = "canada" if "canada" in db_file else "china"
-        per_region[region] = count
-        conn.close()
+        per_region[region] = {"total": count, "max_magnitude": mx or 0, "last_24h": h24}
     return {"total": total, "per_region": per_region, "max_magnitude": max_mag, "regions": ["canada", "china"]}
 
 @app.get("/api/v1/live")

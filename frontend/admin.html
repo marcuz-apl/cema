@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEMA · Operations Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+
+<div class="cyber-grid" aria-hidden="true"></div>
+<div class="ambient ambient-a" aria-hidden="true"></div>
+<div class="ambient ambient-b" aria-hidden="true"></div>
+
+<!-- Auth gate -->
+<div id="authGate" class="auth-gate">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark">CEMA</div>
+      <div class="brand-sub">OPERATIONS DECK</div>
+    </div>
+    <div class="auth-lock">SIGN-IN REQUIRED</div>
+    <input id="authKey" type="password" class="auth-input" placeholder="Enter admin passkey" autocomplete="current-password" spellcheck="false">
+    <button id="authBtn" class="btn btn-primary btn-block">Unlock Deck</button>
+    <div id="authError" class="auth-error hidden"></div>
+    <div class="auth-tip">Default passkey <code>cema2026</code> — change it after sign-in.</div>
+  </div>
+</div>
+
+<!-- Main deck -->
+<div id="app" class="hidden">
+
+  <header class="deck-header">
+    <div class="dh-left">
+      <div class="brand-mark sm">CEMA</div>
+      <div class="dh-title">
+        <div class="dh-name">Operations Deck <span class="dh-dot">·</span> <span id="verChip" class="chip">v0.5.0</span></div>
+        <div class="dh-sub">Canada · China Earthquake Monitor — USGS Live Catalog</div>
+      </div>
+    </div>
+    <div class="dh-right">
+      <div class="live-badge" id="liveBadge"><span class="live-dot"></span>LIVE</div>
+      <div class="clock" id="clock">--:--:--</div>
+      <button id="themeBtn" class="icon-btn" title="Toggle theme">◐</button>
+      <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">Public Map ↗</a>
+      <button id="pwdBtn" class="btn btn-ghost">Passkey</button>
+      <button id="logoutBtn" class="btn btn-ghost danger-ghost">Exit</button>
+    </div>
+  </header>
+
+  <main class="deck-main">
+
+    <!-- Command banner -->
+    <section class="banner-command glass">
+      <div class="bc-topology">
+        <span class="bc-label">TOPOLOGY</span>
+        <span class="bc-pill">CAN · AOI 41.7,-141.0 → 83.1,-52.6</span>
+        <span class="bc-pill">CHN · AOI 18.0,73.5 → 53.6,135.1</span>
+        <span class="bc-pill">SRC · USGS FDSN (keyless)</span>
+        <span class="bc-pill">STORE · SQLite WAL ×2</span>
+      </div>
+      <button id="syncAllBtn" class="btn btn-primary">⟳ Re-sync live (7d)</button>
+    </section>
+
+    <!-- Providers -->
+    <section id="providers" class="providers"></section>
+
+    <!-- Backfill engine -->
+    <section class="panel glass">
+      <div class="panel-head">
+        <h2>Backfill Engine</h2>
+        <span class="panel-tag">archive · replace or merge · USGS</span>
+      </div>
+      <div class="bf-controls">
+        <div class="presets">
+          <button class="chip-btn active" data-range="2023">Y2023</button>
+          <button class="chip-btn" data-range="2024">Y2024</button>
+          <button class="chip-btn" data-range="2025">Y2025</button>
+          <button class="chip-btn" data-range="full">Full 2020→Today</button>
+        </div>
+        <div class="field">
+          <label>START</label>
+          <input type="date" id="bfStart">
+        </div>
+        <div class="field">
+          <label>END</label>
+          <input type="date" id="bfEnd">
+        </div>
+        <div class="field">
+          <label>MAG FLOOR</label>
+          <select id="bfMag">
+            <option>1.0</option>
+            <option selected>2.0</option>
+            <option>3.0</option>
+            <option>3.5</option>
+            <option>4.0</option>
+            <option>5.0</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>CHUNK (DAYS)</label>
+          <select id="bfChunk">
+            <option>30</option>
+            <option selected>60</option>
+            <option>90</option>
+            <option>120</option>
+            <option>180</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>MODE</label>
+          <select id="bfMode">
+            <option value="backfill">Backfill (replace)</option>
+            <option value="merge">Merge only new</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>REGIONS</label>
+          <select id="bfRegions">
+            <option value="all">Both AOIs</option>
+            <option value="canada">Canada</option>
+            <option value="china">China</option>
+          </select>
+        </div>
+        <button id="bfLaunch" class="btn btn-accent">▶ Launch Backfill</button>
+      </div>
+
+      <div class="bf-progress" id="bfProgressWrap">
+        <div class="bf-status-row">
+          <span class="bf-status mono" id="bfStatus">IDLE — awaiting command</span>
+          <span class="bf-percent mono" id="bfPercent">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="bfBar" style="width:0%"></div></div>
+        <div class="bf-stats">
+          <div class="bf-stat"><span class="mono" id="bfWindow">—</span><small>WINDOW</small></div>
+          <div class="bf-stat"><span class="mono" id="bfFetched">—</span><small>FETCHED</small></div>
+          <div class="bf-stat"><span class="mono" id="bfInserted">—</span><small>INSERTED</small></div>
+          <div class="bf-stat"><span class="mono" id="bfRange">—</span><small>RANGE · M≥×</small></div>
+        </div>
+      </div>
+
+      <div class="bf-terminal">
+        <div class="term-head"><span class="term-title">operator.log</span><span class="term-caret">█</span></div>
+        <pre id="bfLog" class="term-body">$ cema ops deck armed — awaiting commands</pre>
+      </div>
+    </section>
+
+    <!-- DB telemetry -->
+    <section class="panel glass">
+      <div class="panel-head">
+        <h2>Database Telemetry</h2>
+        <span class="panel-tag">storage · density · magnitude</span>
+      </div>
+      <div class="kpi-grid" id="kpiRow"></div>
+
+      <div class="tele-tools">
+        <button id="toolDedup" class="btn btn-ghost">⇕ Deduplicate (≤25km / ±60s)</button>
+        <button id="toolPurge" class="btn btn-ghost">✕ Purge noise M&lt;<select id="purgeFloor"><option selected>2.0</option><option>2.5</option><option>3.0</option></select></button>
+        <button id="toolCheckpoint" class="btn btn-ghost">▤ Flush WAL</button>
+        <button id="toolVacuum" class="btn btn-ghost">⚙ Vacuum</button>
+        <button id="toolExport" class="btn btn-ghost">⬇ Export Catalog</button>
+      </div>
+
+      <div class="tele-grid">
+        <div class="tele-col">
+          <h3>Year Density</h3>
+          <div id="yearDensity" class="density-bars"></div>
+        </div>
+        <div class="tele-col">
+          <h3>Magnitude Distribution</h3>
+          <div id="magDist" class="density-bars"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Event moderation -->
+    <section class="panel glass">
+      <div class="panel-head">
+        <h2>Event Moderation</h2>
+        <span class="panel-tag" id="eventsTotal"></span>
+        <button id="registerBtn" class="btn btn-accent">+ Register Event</button>
+      </div>
+      <div class="mod-filters">
+        <select id="mfRegion"><option value="">Region · all</option><option value="canada">Canada</option><option value="china">China</option></select>
+        <select id="mfSource"><option value="">Source · all</option><option value="USGS">USGS</option><option value="OPERATOR">OPERATOR</option></select>
+        <select id="mfMinMag"><option value="">Mag ≥ · all</option><option value="1.0">1.0</option><option value="2.0">2.0</option><option value="3.0">3.0</option><option value="4.5">4.5</option><option value="6.0">6.0</option></select>
+        <input id="mfSearch" type="search" placeholder="search source / region / time / coords">
+        <button id="mfApply" class="btn btn-ghost">Apply</button>
+        <button id="mfReset" class="btn btn-ghost">Reset</button>
+      </div>
+      <div class="table-wrap">
+        <table class="mod-table">
+          <thead>
+            <tr>
+              <th data-sort="event_time_utc" class="sortable">UTC Time</th>
+              <th data-sort="magnitude" class="sortable">Mag</th>
+              <th data-sort="region" class="sortable">Region</th>
+              <th data-sort="latitude" class="sortable">Lat</th>
+              <th data-sort="longitude" class="sortable">Lon</th>
+              <th data-sort="depth_km" class="sortable">Depth</th>
+              <th>Source</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="eventsBody"><tr><td colspan="8" class="empty">…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <button id="pgPrev" class="btn btn-ghost">‹ Prev</button>
+        <span id="pgInfo" class="mono">0 – 0 of 0</span>
+        <button id="pgNext" class="btn btn-ghost">Next ›</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="deck-footer">
+    <span>CEMA OPS · v0.5.0</span>
+    <span class="mono">catalogs: eq-canada.db / eq-china.db</span>
+    <span class="mono">governance: USGS → AOI split → local WAL</span>
+  </footer>
+
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<!-- Confirm modal -->
+<div id="confirmModal" class="modal hidden">
+  <div class="modal-card glass">
+    <h3 id="confirmTitle">Confirm</h3>
+    <p id="confirmMsg" class="modal-msg"></p>
+    <div class="modal-actions">
+      <button id="confirmCancel" class="btn btn-ghost">Cancel</button>
+      <button id="confirmOk" class="btn btn-primary">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Register modal -->
+<div id="registerModal" class="modal hidden">
+  <div class="modal-card glass">
+    <h3>Register Verified Event</h3>
+    <div class="reg-grid">
+      <div class="field"><label>REGION</label>
+        <select id="regRegion"><option value="canada">Canada</option><option value="china">China</option></select></div>
+      <div class="field"><label>UTC TIME</label><input type="datetime-local" id="regTime"></div>
+      <div class="field"><label>LATITUDE</label><input type="number" id="regLat" step="0.0001" placeholder="41.71"></div>
+      <div class="field"><label>LONGITUDE</label><input type="number" id="regLon" step="0.0001" placeholder="-80.0"></div>
+      <div class="field"><label>DEPTH (KM)</label><input type="number" id="regDepth" step="0.1" value="10"></div>
+      <div class="field"><label>MAGNITUDE</label><input type="number" id="regMag" step="0.1" value="3.5"></div>
+      <div class="field span2"><label>SOURCE TAG</label><input type="text" id="regSource" value="OPERATOR"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="regCancel" class="btn btn-ghost">Cancel</button>
+      <button id="regSave" class="btn btn-primary">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/admin.js"></script>
+</body>
+</html>
