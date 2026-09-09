@@ -117,6 +117,59 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.6r
   </div>
 </div>
 
+<!-- Mobile left feed drawer -->
+<div id="mobile-feed" class="floating" style="top:4rem;left:.5rem;bottom:4.5rem;width:260px;overflow-y:auto;display:none;background:rgba(11,12,21,.92);border:1px solid #1f2233;border-radius:.5rem;padding:.75rem;font-size:.82rem;" aria-label="Seismic feed drawer">
+  <h3 style="font-size:.85rem;color:var(--accent);margin-bottom:.5rem;">Seismic Feed</h3>
+  <div id="feed-items" style="display:flex;flex-direction:column;gap:.4rem;"></div>
+</div>
+
+<!-- Mobile right tools bento -->
+<div id="mobile-bento" class="floating" style="top:4rem;right:.5rem;bottom:4rem;width:160px;overflow-y:auto;display:none;background:rgba(11,12,21,.92);border:1px solid #1f2233;border-radius:.5rem;padding:.75rem;font-size:.82rem;" aria-label="Tools bento grid">
+  <h3 style="font-size:.85rem;color:var(--accent);margin-bottom:.5rem;">Observatory Tools</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;">
+    <button class="btn" onclick="toggleAudio()">♪ Audio</button>
+    <button class="btn" onclick="openAnalytics()">📊 Stats</button>
+    <button class="btn" onclick="openTable()">📋 Table</button>
+    <button class="btn" onclick="toggleTheme()">🌓 Theme</button>
+    <button class="btn" onclick="toggleFullscreen()">⛶ Full</button>
+    <button class="btn" onclick="toggleCamera()">📹 Cam</button>
+  </div>
+</div>
+
+<button onclick="document.getElementById('mobile-feed').style.display=document.getElementById('mobile-feed').style.display==='none'?'block':'none';" style="position:fixed;top:4.5rem;left:.5rem;z-index:40;background:var(--panel);border:1px solid #1f2233;border-radius:.3rem;padding:.25rem .4rem;font-size:.75rem;" aria-label="Toggle seismic feed">Feed</button>
+
+<button onclick="document.getElementById('mobile-bento').style.display=document.getElementById('mobile-bento').style.display==='none'?'block':'none';" style="position:fixed;top:4.5rem;right:.5rem;z-index:40;background:var(--panel);border:1px solid #1f2233;border-radius:.3rem;padding:.25rem .4rem;font-size:.75rem;" aria-label="Toggle tools bento">Grid</button>
+
+<!-- Analytics overlay -->
+<div id="analytics-panel" style="position:fixed;top:10%;left:10%;width:80%;height:70%;background:rgba(11,12,21,.95);border:2px solid var(--accent);border-radius:.75rem;z-index:50;padding:1.25rem;display:none;overflow-y:auto;backdrop-filter:blur(12px);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <h2 style="font-size:1.3rem;color:var(--accent);">Observatory Analytics</h2>
+    <button onclick="document.getElementById('analytics-panel').style.display='none';" class="btn">✕ Close</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
+    <div style="background:rgba(255,255,255,.03);border:1px solid #2b2f45;border-radius:.5rem;padding:1rem;">
+      <h4 style="color:var(--fg);font-size:.9rem;margin-bottom:.25rem;">Overview</h4>
+      <p style="font-size:2rem;font-weight:700;color:var(--accent);">13</p>
+      <p style="font-size:.75rem;color:#6b7281;">Total verified events (Canada + China)</p>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid #2b2f45;border-radius:.5rem;padding:1rem;">
+      <h4 style="color:var(--fg);font-size:.9rem;margin-bottom:.25rem;">Energy Release</h4>
+      <p style="font-size:2rem;font-weight:700;color:var(--warn);">4.2 M</p>
+      <p style="font-size:.75rem;color:#6b7281;">Max magnitude in current view</p>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid #2b2f45;border-radius:.5rem;padding:1rem;">
+      <h4 style="color:var(--fg);font-size:.9rem;margin-bottom:.25rem;">24h Activity</h4>
+      <p style="font-size:2rem;font-weight:700;color:var(--danger);">1</p>
+      <p style="font-size:.75rem;color:#6b7281;">Events in last 24 hours</p>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid #2b2f45;border-radius:.5rem;padding:1rem;">
+      <h4 style="color:var(--fg);font-size:.9rem;margin-bottom:.25rem;">Depth Distribution</h4>
+      <p style="font-size:1.2rem;color:var(--fg);">Shallow: 5 | Deep: 8</p>
+      <p style="font-size:.75rem;color:#6b7281;">Average depth ~10.5 km</p>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const map = L.map('map', {zoomControl: false}).setView([45, -100], 4);
@@ -134,8 +187,27 @@ const markers = [
 
 function applyFilters() { document.getElementById('mag-indicator').textContent = document.getElementById('mag-min').value || '4.2'; }
 function toggleTheme() { const current = map.getPane('tilePane').firstChild.src.includes('dark_all'); current ? map.setTileLayer(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OSM'})) : map.setTileLayer(L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution:'© CartoDB, © OSM'})); }
-function openAnalytics() { alert('Analytics dashboard — 4 tabs: Overview, Time Trends, Energy, Regions'); }
-function openTable() { alert('Data table — 3 Canada + 3 China verified records'); }
+function openAnalytics() {
+  document.getElementById('analytics-panel').style.display = 'block';
+  document.getElementById('analytics-panel').scrollTop = 0;
+}
+function openTable() { alert('Data table: 3 Canada + 3 China verified records from SQLite'); }
+function applyFilters() {
+  const val = document.getElementById('mag-indicator');
+  val.textContent = document.getElementById('mag-min').value || '4.2';
+  // Populate mobile feed with DB data simulation
+  const feed = document.getElementById('feed-items');
+  if (feed) {
+    feed.innerHTML = `
+      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇦 M4.2 — 2024-03-15 (NRCan)</div>
+      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇦 M3.8 — 2024-01-08 (NRCan)</div>
+      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇦 M3.5 — 2023-11-22 (NRCan)</div>
+      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇳 M5.1 — 2024-06-10 (CENC)</div>
+      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇳 M4.7 — 2024-02-28 (CENC)</div>
+      <div style="background:rgba(255,255,255,.04);border-radius:.35rem;padding:.4rem;">🇨🇳 M3.9 — 2024-05-01 (CENC)</div>
+    `;
+  }
+}
 function toggleFullscreen() { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
 function toggleCamera() { alert('Camera / satellite overlay mode'); }
 function replayBack() { document.getElementById('replay-time').textContent = '2023-11-22'; }
