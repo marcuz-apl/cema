@@ -29,12 +29,12 @@
 - [x] Multi-region DB routing (`eq-canada.db` / `eq-china.db`)
 - [x] Unit test stub (`tests/test_app.py`)
 
-### Phase 4 — Frontend UI (Target: Week 4) ⏳ PENDING
-- [ ] SPA header (3-col), telemetry HUD, filter bar
-- [ ] Leaflet Canvas map + theme toggler
-- [ ] Floating MAG / Layers / Player bars
-- [ ] Mobile drawers (dual-nav)
-- [ ] Mobile-device friendly verification
+### Phase 4 — Frontend UI (Target: Week 4) ✅ COMPLETED
+- [x] SPA header (3-col), telemetry HUD, filter bar
+- [x] Leaflet Canvas map + theme toggler
+- [x] Floating MAG / Layers / Player bars
+- [x] Mobile drawers (dual-nav)
+- [x] Mobile-device friendly verification
 
 ### Phase 5 — Integration, Quality & Release (Target: Week 5) ⏳ PENDING
 - [ ] Playwright E2E tests passing
