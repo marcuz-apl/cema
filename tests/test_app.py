@@ -6,6 +6,17 @@ client = TestClient(app)
 def test_root():
     resp = client.get("/")
     assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/html")
+    assert "CEMA" in resp.text
+
+def test_root_css():
+    resp = client.get("/css/style.css")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/css")
+
+def test_info():
+    resp = client.get("/api/v1/info")
+    assert resp.status_code == 200
     data = resp.json()
     assert data["service"] == "CEMA"
     assert "canada" in data["regions"]

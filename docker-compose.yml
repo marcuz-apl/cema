@@ -3,7 +3,7 @@ services:
   cema:
     build: .
     ports:
-      - "4070:4070"
+      - "4071:4071"
     volumes:
       - ./data:/app/data
     restart: unless-stopped

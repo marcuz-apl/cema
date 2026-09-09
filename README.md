@@ -35,7 +35,7 @@ cd cema
 docker compose up -d --build
 ```
 
-Access at `http://localhost:4070`.
+Access at `http://localhost:4071`.
 
 ## Project Structure
 

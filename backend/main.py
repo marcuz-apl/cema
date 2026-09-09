@@ -1,12 +1,15 @@
 from fastapi import FastAPI, Query
 from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 from contextlib import asynccontextmanager
 import sqlite3, os, json, time
 
+from . import admin as admin_module
+
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
-DB_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+DB_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 DB_FILES = ["eq-canada.db", "eq-china.db"]
 
 def init_db():
@@ -45,6 +48,10 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="CEMA API", version="0.5.0", lifespan=lifespan)
+
+app.include_router(admin_module.router)
+app.mount("/css", StaticFiles(directory=os.path.join(FRONTEND_DIR, "css")), name="css")
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 class Earthquake(BaseModel):
     id: int
@@ -92,6 +99,10 @@ def query_db(db_file, min_mag, max_mag, limit, region_filter, start_date=None, e
 @app.get("/")
 async def root():
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+@app.get("/admin", include_in_schema=False)
+async def admin_panel():
+    return FileResponse(os.path.join(FRONTEND_DIR, "admin.html"))
 
 @app.get("/api/v1/info")
 async def info():
