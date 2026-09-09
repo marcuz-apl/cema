@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  cema:
+    build: .
+    ports:
+      - "4070:4070"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
