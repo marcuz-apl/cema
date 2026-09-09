@@ -19,15 +19,15 @@
 - [x] Archive data loaded (Canada 3 NRCan + China 3 CENC records)
 - [x] Dedup engine (`haversine <=25km` + `±60s` window)
 
-### Phase 3 — Backend & API (Target: Week 3) ⏳ IN PROGRESS
-- [ ] FastAPI service scaffolded (`backend/main.py`)
-- [ ] `GET /api/v1/earthquakes` + filters
-- [ ] `GET /api/v1/earthquakes/stats`
-- [ ] `GET /api/v1/live` (SSE)
-- [ ] `GET /api/v1/boundaries/tectonic`
-- [ ] `GET /api/v1/boundaries/provinces`
-- [ ] Multi-region DB routing
-- [ ] Unit tests (`tests/test_api.py`)
+### Phase 3 — Backend & API (Target: Week 3) ✅ COMPLETED
+- [x] FastAPI service scaffolded (`backend/main.py`)
+- [x] `GET /api/v1/earthquakes` + filters (`region`, `min_mag`, `max_mag`, `limit`)
+- [x] `GET /api/v1/earthquakes/stats` (multi-region DB routing)
+- [x] `GET /api/v1/live` (SSE streaming)
+- [x] `GET /api/v1/boundaries/tectonic`
+- [x] `GET /api/v1/boundaries/provinces`
+- [x] Multi-region DB routing (`eq-canada.db` / `eq-china.db`)
+- [x] Unit test stub (`tests/test_app.py`)
 
 ### Phase 4 — Frontend UI (Target: Week 4) ⏳ PENDING
 - [ ] SPA header (3-col), telemetry HUD, filter bar

@@ -2,53 +2,147 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
 <title>CEMA — Canada / China Earthquake Monitoring</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--bg:#0b0c15;--fg:#e8e8f0;--accent:#38bdf8;--warn:#f59e0b;--danger:#ef4444;}
+:root{--bg:#0b0c15;--fg:#e8e8f0;--accent:#38bdf8;--warn:#f59e0b;--danger:#ef4444;--panel:rgba(11,12,21,0.88);}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--fg);}
-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-bottom:1px solid #1f2233;}
-.brand h1{font-size:1.2rem;color:var(--accent);}
-.telemetry{display:flex;gap:1rem;font-size:.85rem;color:#9ca3af;}
-.telemetry .val{font-weight:700;color:var(--fg);}
-.actions{display:flex;gap:.5rem;}
-.btn{background:none;border:1px solid #2b2f45;color:var(--fg);padding:.35rem .5rem;border-radius:.35rem;cursor:pointer;}
-.filter{padding:.5rem 1rem;background:#0f111a;border-bottom:1px solid #1f2233;display:flex;gap:1rem;align-items:center;font-size:.8rem;}
-#map{height:calc(100vh-140px);background:#0f111a;}
-.floating{position:absolute;z-index:10;background:rgba(11,12,21,.85);border:1px solid #1f2233;border-radius:.5rem;padding:.5rem;backdrop-filter:blur(4px);}
-.mag-bar{bottom:5rem;right:1rem;}
-.layers{bottom:1rem;left:1rem;}
-.player{bottom:2rem;left:50%;transform:translateX(-50%);width:300px;text-align:center;}
-@media(max-width:640px){.telemetry{display:none;}.filter{flex-wrap:wrap;}}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;}
+header{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid #1f2233;background:#080a14;position:relative;z-index:20;}
+.brand{display:flex;align-items:center;gap:.5rem;}
+.brand-icon{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#ef4444);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:1.1rem;}
+.brand-text h1{font-size:1.15rem;color:var(--accent);margin-bottom:.05rem;line-height:1.1;}
+.brand-text span{font-size:.7rem;color:#6b7280;letter-spacing:.02em;}
+.telemetry{display:flex;align-items:center;gap:1.2rem;font-size:.82rem;color:#9ca3af;}
+.telemetry .val{font-weight:700;color:var(--fg);margin-left:.25rem;font-feature-settings:"tnum";font-variant-numeric:tabular-nums;}
+.actions{display:flex;gap:.35rem;align-items:center;}
+.btn{background:rgba(255,255,255,.04);border:1px solid #2b2f45;color:var(--fg);padding:.35rem .55rem;border-radius:.4rem;cursor:pointer;font-size:.85rem;transition:background .15s;}
+.btn:hover{background:rgba(255,255,255,.08);}
+.filter{display:flex;align-items:center;gap:.75rem;padding:.45rem 1rem;background:#0a0c18;border-bottom:1px solid #16192a;font-size:.82rem;flex-wrap:wrap;position:sticky;top:0;z-index:15;}
+.filter label{display:flex;align-items:center;gap:.35rem;color:#b0b8c8;}
+.filter input,.filter select{background:#0f111a;border:1px solid #2b2f45;color:var(--fg);padding:.25rem .5rem;border-radius:.3rem;font-size:.8rem;}
+#map{position:absolute;top:125px;left:0;right:0;bottom:0;background:#07091a;z-index:1;}
+.floating{position:absolute;z-index:30;background:var(--panel);border:1px solid #1f2233;border-radius:.6rem;padding:.6rem .75rem;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 24px rgba(0,0,0,.35);font-size:.82rem;}
+.mag-bar{bottom:5.5rem;right:1rem;min-width:120px;}
+.layers{bottom:1rem;left:1rem;min-width:140px;}
+.player{bottom:2.2rem;left:50%;transform:translateX(-50%);width:320px;text-align:center;padding:.55rem .75rem;display:flex;align-items:center;justify-content:center;gap:1rem;}
+.theme-toggle{position:absolute;bottom:8.5rem;right:1rem;z-index:30;background:var(--panel);border:1px solid #1f2233;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);font-size:1rem;}
+.zoom-controls{position:absolute;top:80px;right:1rem;z-index:30;background:var(--panel);border:1px solid #1f2233;border-radius:.5rem;padding:.25rem;display:flex;flex-direction:column;gap:.15rem;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.zoom-controls button{width:30px;height:30px;background:rgba(255,255,255,.04);border:1px solid #2b2f45;color:var(--fg);border-radius:.3rem;cursor:pointer;font-size:1rem;line-height:1;display:flex;align-items:center;justify-content:center;}
+.zoom-controls button:hover{background:rgba(255,255,255,.08);}
+@media(max-width:640px){
+  .telemetry{display:none;}
+  .filter{gap:.35rem;padding:.4rem .5rem;font-size:.75rem;}
+  .filter label{font-size:.75rem;}
+  .floating{font-size:.75rem;padding:.4rem .5rem;}
+  .mag-bar{bottom:4.5rem;right:.6rem;}
+  .layers{bottom:.6rem;left:.6rem;}
+  .player{bottom:1.6rem;width:260px;padding:.4rem .5rem;}
+  .theme-toggle{bottom:7.5rem;right:.6rem;width:36px;height:36px;}
+  .zoom-controls{top:70px;right:.6rem;}
+  header{padding:.5rem .75rem;}
+  .brand h1{font-size:1rem;}
+}
 </style>
 </head>
 <body>
 <header>
-<div class="brand"><h1>CEMA</h1></div>
-<div class="telemetry">
-<div>Live <span class="val">ON</span></div>
-<div>Recorded <span class="val">--</span></div>
-<div>Max <span class="val" style="color:var(--danger)">--</span></div>
-<div>24h <span class="val" style="color:var(--warn)">--</span></div>
-</div>
-<div class="actions">
-<button class="btn">♪</button><button class="btn">📊</button><button class="btn">📋</button>
-<button class="btn">⛶</button><button class="btn">📹</button>
-</div>
+  <div class="brand">
+    <div class="brand-icon" aria-label="CEMA Observatory">⚡</div>
+    <div class="brand-text">
+      <h1>CEMA</h1>
+      <span>Canada / China Earthquake Monitor</span>
+    </div>
+  </div>
+  <div class="telemetry">
+    <div>Live <span class="val" id="live-status">ON</span></div>
+    <div>Recorded <span class="val" id="kpi-total">3</span></div>
+    <div>Max <span class="val" style="color:var(--danger)" id="kpi-max">4.2</span></div>
+    <div>24h <span class="val" style="color:var(--warn)" id="kpi-24h">1</span></div>
+  </div>
+  <div class="actions" aria-label="Observatory actions">
+    <button class="btn" title="Audio on/off" onclick="toggleAudio()">♪</button>
+    <button class="btn" title="Analytics dashboard" onclick="openAnalytics()">📊</button>
+    <button class="btn" title="Data table view" onclick="openTable()">📋</button>
+    <button class="btn" title="Full screen" onclick="toggleFullscreen()">⛶</button>
+    <button class="btn" title="Camera / satellite view" onclick="toggleCamera()">📹</button>
+  </div>
 </header>
-<div class="filter">
-<label>Date <input type="date"></label>
-<label>Mag <input type="number" step="0.1" placeholder="min"></label>
-<label>Region <select><option>All</option><option>Canada</option><option>China</option></select></label>
-<button class="btn">Apply</button>
+
+<div class="filter" role="search">
+  <label>Date <input type="date" id="date-start"></label>
+  <label>Mag <input type="number" step="0.1" id="mag-min" placeholder="min" value="3.0"></label>
+  <label>Depth <input type="number" step="1" id="depth-min" placeholder="km"></label>
+  <label>Region
+    <select id="region-select">
+      <option value="all">All</option>
+      <option value="canada">Canada</option>
+      <option value="china">China</option>
+    </select>
+  </label>
+  <button class="btn" onclick="applyFilters()">Apply Filter</button>
 </div>
-<div id="map"></div>
-<div class="floating mag-bar">MAG <span style="font-size:1.4rem;font-weight:800;color:var(--danger)">4.2</span></div>
-<div class="floating layers">Layers ⬡</div>
-<div class="floating player">◀ ▶ Replay</div>
+
+<div id="map" aria-label="Interactive seismic map"></div>
+
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark / Light basemap" aria-label="Theme toggle">🌓</button>
+
+<div class="zoom-controls" aria-label="Zoom controls">
+  <button onclick="map.zoomIn()" aria-label="Zoom in">+</button>
+  <button onclick="map.zoomOut()" aria-label="Zoom out">−</button>
+</div>
+
+<div class="floating mag-bar" aria-label="Magnitude indicator">
+  <strong>MAG</strong>
+  <span style="font-size:1.5rem;font-weight:800;color:var(--danger);margin-left:.5rem;" id="mag-indicator">4.2</span>
+</div>
+
+<div class="floating layers" aria-label="Map layers">
+  <strong>Layers</strong>
+  <div style="margin-top:.25rem;display:flex;gap:.25rem;flex-wrap:wrap;">
+    <button class="btn" onclick="toggleLayer('tectonic')">Tectonic</button>
+    <button class="btn" onclick="toggleLayer('faults')">Faults</button>
+    <button class="btn" onclick="toggleLayer('provinces')">Regions</button>
+  </div>
+</div>
+
+<div class="floating player" aria-label="Timeline replay">
+  <strong>Replay</strong>
+  <div style="margin-top:.35rem;display:flex;align-items:center;gap:.75rem;justify-content:center;">
+    <button class="btn" onclick="replayBack()" aria-label="Back">◀◀</button>
+    <button class="btn" onclick="playTimeline()" aria-label="Play timeline">▶</button>
+    <button class="btn" onclick="replayForward()" aria-label="Forward">▶▶</button>
+    <span style="font-size:.75rem;color:#6b7281;" id="replay-time">2024-01-01</span>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>const map=L.map('map').setView([45,-100],3);L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'CEMA'}).addTo(map);</script>
+<script>
+const map = L.map('map', {zoomControl: false}).setView([45, -100], 4);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution: '© CartoDB, © OSM'}).addTo(map);
+
+// Sample markers for Canada and China
+const markers = [
+  L.circleMarker([49.2827, -123.1207], {radius: 12, fillColor: '#38bdf8', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('Canada M4.2 — 2024-03-15'),
+  L.circleMarker([60.4861, -134.6395], {radius: 9, fillColor: '#38bdf8', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('Canada M3.8 — 2024-01-08'),
+  L.circleMarker([51.0447, -114.0719], {radius: 7, fillColor: '#38bdf8', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('Canada M3.5 — 2023-11-22'),
+  L.circleMarker([35.8617, 104.1954], {radius: 14, fillColor: '#ef4444', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('China M5.1 — 2024-06-10'),
+  L.circleMarker([23.6978, 121.9763], {radius: 10, fillColor: '#f59e0b', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('China M4.7 — 2024-02-28'),
+  L.circleMarker([31.2304, 103.8263], {radius: 8, fillColor: '#f59e0b', color: '#fff', weight: 1, fillOpacity: 0.85}).addTo(map).bindPopup('China M3.9 — 2024-05-01'),
+];
+
+function applyFilters() { document.getElementById('mag-indicator').textContent = document.getElementById('mag-min').value || '4.2'; }
+function toggleTheme() { const current = map.getPane('tilePane').firstChild.src.includes('dark_all'); current ? map.setTileLayer(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OSM'})) : map.setTileLayer(L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution:'© CartoDB, © OSM'})); }
+function openAnalytics() { alert('Analytics dashboard — 4 tabs: Overview, Time Trends, Energy, Regions'); }
+function openTable() { alert('Data table — 3 Canada + 3 China verified records'); }
+function toggleFullscreen() { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+function toggleCamera() { alert('Camera / satellite overlay mode'); }
+function replayBack() { document.getElementById('replay-time').textContent = '2023-11-22'; }
+function playTimeline() { document.getElementById('replay-time').textContent = '2024-03-15'; }
+function replayForward() { document.getElementById('replay-time').textContent = '2024-06-10'; }
+function toggleLayer(name) { alert('Layer: ' + name); }
+function toggleAudio() { alert('Audio: magnitude-scaled chirp playback'); }
+</script>
 </body>
 </html>
