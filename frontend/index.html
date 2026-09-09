@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEMA — Canada / China Earthquake Monitoring &amp; Alert</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root { --bg:#0b0c15; --fg:#e8e8f0; --accent:#38bdf8; --warn:#f59e0b; --danger:#ef4444; }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--fg);}
+  header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-bottom:1px solid #1f2233;}
+  .brand h1{font-size:1.2rem;color:var(--accent);}
+  .telemetry{display:flex;gap:1rem;font-size:.85rem;color:#9ca3af;}
+  .telemetry .val{font-weight:700;color:var(--fg);}
+  .actions{display:flex;gap:.5rem;}
+  .btn{background:none;border:1px solid #2b2f45;color:var(--fg);padding:.35rem .5rem;border-radius:.35rem;cursor:pointer;}
+  .filter{padding:.5rem 1rem;background:#0f111a;border-bottom:1px solid #1f2233;display:flex;gap:1rem;align-items:center;font-size:.8rem;}
+  #map{height:calc(100vh - 140px);background:#0f111a;}
+  .floating{position:absolute;z-index:10;background:rgba(11,12,21,.85);border:1px solid #1f2233;border-radius:.5rem;padding:.5rem;backdrop-filter:blur(4px);}
+  .mag-bar{bottom:5rem;right:1rem;}
+  .layers{bottom:1rem;left:1rem;}
+  .player{bottom:2rem;left:50%;transform:translateX(-50%);width:300px;text-align:center;}
+  @media(max-width:640px){.telemetry{display:none;} .filter{flex-wrap:wrap;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><h1>CEMA</h1></div>
+  <div class="telemetry">
+    <div>Live <span class="val">ON</span></div>
+    <div>Recorded <span class="val" id="kpi-total">--</span></div>
+    <div>Max <span class="val" style="color:var(--danger)">--</span></div>
+    <div>24h <span class="val" style="color:var(--warn)">--</span></div>
+  </div>
+  <div class="actions">
+    <button class="btn" aria-label="Audio">♪</button>
+    <button class="btn" aria-label="Analytics">📊</button>
+    <button class="btn" aria-label="Table">📋</button>
+    <button class="btn" aria-label="Fullscreen">⛶</button>
+    <button class="btn" aria-label="Camera">📹</button>
+  </div>
+</header>
+<div class="filter">
+  <label>Date <input type="date"></label>
+  <label>Mag <input type="number" step="0.1" placeholder="min"></label>
+  <label>Region <select><option>All</option><option>Canada</option><option>China</option></select></label>
+  <button class="btn">Apply</button>
+</div>
+<div id="map"></div>
+<div class="floating mag-bar">MAG <span style="font-size:1.4rem;font-weight:800;color:var(--danger)">4.2</span></div>
+<div class="floating layers">Layers ⬡</div>
+<div class="floating player">◀ ▶ Replay</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([45, -100], 3);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution:'CEMA'}).addTo(map);
+  document.getElementById('kpi-total').textContent = '0';
+</script>
+</body>
+</html>
