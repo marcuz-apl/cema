@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List
-import sqlite3, os
+import sqlite3, os, json, time
+
+app = FastAPI(title="CEMA API", version="v0.2.0")
 
 app = FastAPI(title="CEMA API", version="v0.2.0")
 DB_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
@@ -25,6 +28,22 @@ async def list_earthquakes(region: Optional[str] = None, min_mag: float = 0, max
         for row in cursor.fetchall():
             results.append({"id": row[0], "region": row[1], "event_time_utc": row[2], "latitude": row[3], "longitude": row[4], "depth_km": row[5], "magnitude": row[6], "source": row[7]})
     return {"region": region or "both", "count": len(results), "items": results}
+
+@app.get("/api/v1/live")
+async def live():
+    def event_stream():
+        while True:
+            yield f"data: {json.dumps({'status':'live','regions':['canada','china'],'timestamp':time.time()})}\n\n"
+            time.sleep(5)
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+@app.get("/api/v1/boundaries/tectonic")
+async def tectonic_boundaries():
+    return {"type":"FeatureCollection","features":[]}
+
+@app.get("/api/v1/boundaries/provinces")
+async def provinces():
+    return {"type":"FeatureCollection","features":[]}
 
 @app.get("/api/v1/earthquakes/stats")
 async def stats():
