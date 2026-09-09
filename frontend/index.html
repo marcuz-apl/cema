@@ -173,7 +173,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.6r
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const map = L.map('map', {zoomControl: false}).setView([45, -100], 4);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution: '© CartoDB, © OSM'}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OSM'}).addTo(map);
 
 // Sample markers for Canada and China
 const markers = [
@@ -186,7 +186,15 @@ const markers = [
 ];
 
 function applyFilters() { document.getElementById('mag-indicator').textContent = document.getElementById('mag-min').value || '4.2'; }
-function toggleTheme() { const current = map.getPane('tilePane').firstChild.src.includes('dark_all'); current ? map.setTileLayer(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OSM'})) : map.setTileLayer(L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution:'© CartoDB, © OSM'})); }
+function toggleTheme() {
+  const currentSrc = map.getPane('tilePane').firstChild ? map.getPane('tilePane').firstChild.src || '' : '';
+  const isDark = currentSrc.includes('dark_all') || currentSrc.includes('dark') || currentSrc.includes('voyager');
+  if (isDark) {
+    map.setTileLayer(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OSM Contributors'}));
+  } else {
+    map.setTileLayer(L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution: '© CartoDB Dark'}));
+  }
+}
 function openAnalytics() {
   document.getElementById('analytics-panel').style.display = 'block';
   document.getElementById('analytics-panel').scrollTop = 0;
