@@ -200,7 +200,7 @@
     <!-- Floating magnitude legend (draggable) -->
     <div class="map-legend" id="legend-widget" aria-label="Magnitude legend">
       <div class="map-legend-header" id="legend-widget-drag">
-        <span class="map-legend-title">Magnitude</span>
+        <span class="map-legend-title">MAG</span>
         <button class="map-legend-collapse" id="legend-widget-collapse" aria-label="Collapse legend" aria-expanded="true">
           <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
         </button>
@@ -236,7 +236,9 @@
         <option value="1">1×</option>
         <option value="2">2×</option>
         <option value="4">4×</option>
-        <option value="8" selected>8×</option>
+        <option value="8">8×</option>
+        <option value="16">16×</option>
+        <option value="32" selected>32×</option>
       </select>
     </div>
   </main>
@@ -378,7 +380,7 @@
     tablePageSize: 10,
     tableSort: { key: 'event_time_utc', dir: 'desc' },
     playing: false,
-    playback: { idx: 0, speed: 1 },
+    playback: { idx: 0, speed: 32, tickId: 0, snapshot: [] },
     timeRange: [],
     audioEnabled: false
   };
@@ -548,16 +550,20 @@
   }
 
   async function fetchEarthquakes() {
-    const params = { region: state.region, min_mag: state.minMag, limit: 200 };
+    stopPlayback();
+    const params = { region: state.region, min_mag: state.minMag };
     if (state.days > 0) {
       const end = new Date();
       const start = new Date(end.getTime() - state.days * 86400000);
       params.start_date = start.toISOString().split('T')[0];
+    } else {
+      params.start_date = '2000-01-01';
     }
     const data = await api('/api/v1/earthquakes', params);
     state.currentData = data.items || [];
     state.timeRange = state.currentData.map(e => e.event_time_utc).filter(Boolean);
     if (state.timeRange.length > 1) state.timeRange.sort();
+    sortedCacheKey = '';
     state.playback.idx = 0;
     renderFeed();
     renderMarkers();
@@ -580,37 +586,71 @@
   }
 
   /* ---------- Rendering: markers ---------- */
+  let sortedCache = [];
+  let sortedCacheKey = '';
+
+  function getSortedData() {
+    const key = `${state.region}|${state.minMag}|${state.search}`;
+    if (sortedCacheKey !== key) {
+      const data = filterBySearch(state.currentData || []).filter(e => pointInAoi(e.latitude, e.longitude));
+      sortedCache = [...data].sort((a, b) => new Date(a.event_time_utc) - new Date(b.event_time_utc));
+      sortedCacheKey = key;
+    }
+    return sortedCache;
+  }
+
+  function getPlaybackData() {
+    return [...(state.currentData || [])].sort((a, b) => new Date(a.event_time_utc) - new Date(b.event_time_utc));
+  }
+
+  function markerVisible(e) {
+    if (!pointInAoi(e.latitude, e.longitude)) return false;
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      if (!String(e.region).toLowerCase().includes(q)) return false;
+    }
+    return true;
+  }
+
   function renderMarkers() {
     markerLayer.clearLayers();
-    const data = filterBySearch(state.currentData || []).filter(e => pointInAoi(e.latitude, e.longitude));
-    data.forEach(e => {
-      const color = magColor(e.magnitude);
-      const radius = Math.max(5, Math.min(22, e.magnitude * 3.2));
-      const flag = REGIONS[e.region] || '🌍';
-      const m = L.circleMarker([e.latitude, e.longitude], {
-        radius,
-        color: color,
-        weight: 1.5,
-        opacity: 0.9,
-        fillColor: color,
-        fillOpacity: 0.7
-      }).addTo(markerLayer);
+    if (state.playing) {
+      const snap = state.playback.snapshot;
+      for (let i = 0; i <= state.playback.idx && i < snap.length; i++) {
+        if (markerVisible(snap[i])) addMarker(snap[i]);
+      }
+      return;
+    }
+    getSortedData().forEach(addMarker);
+  }
 
-      const depth = (e.depth_km || 0).toFixed(1);
-      m.bindPopup(`
-        <div class="popup-card">
-          <div class="popup-row">
-            <span class="popup-title"><span class="flag">${flag}</span> ${e.region}</span>
-            <span class="popup-mag" style="color:${color}">M${e.magnitude.toFixed(1)}</span>
-          </div>
-          <div class="popup-grid">
-            <div class="g"><span class="g-label">Time</span><span class="g-val">${new Date(e.event_time_utc).toLocaleString()}</span></div>
-            <div class="g"><span class="g-label">Depth</span><span class="g-val">${depth} km</span></div>
-            <div class="g"><span class="g-label">Coords</span><span class="g-val">${e.latitude.toFixed(2)}, ${e.longitude.toFixed(2)}</span></div>
-            <div class="g"><span class="g-label">Source</span><span class="g-val">${e.source}</span></div>
-          </div>
-        </div>`);
-    });
+  function addMarker(e) {
+    const color = magColor(e.magnitude);
+    const radius = Math.max(5, Math.min(22, e.magnitude * 3.2));
+    const flag = REGIONS[e.region] || '🌍';
+    const m = L.circleMarker([e.latitude, e.longitude], {
+      radius,
+      color: color,
+      weight: 1.5,
+      opacity: 0.9,
+      fillColor: color,
+      fillOpacity: 0.7
+    }).addTo(markerLayer);
+
+    const depth = (e.depth_km || 0).toFixed(1);
+    m.bindPopup(`
+      <div class="popup-card">
+        <div class="popup-row">
+          <span class="popup-title"><span class="flag">${flag}</span> ${e.region}</span>
+          <span class="popup-mag" style="color:${color}">M${e.magnitude.toFixed(1)}</span>
+        </div>
+        <div class="popup-grid">
+          <div class="g"><span class="g-label">Time</span><span class="g-val">${new Date(e.event_time_utc).toLocaleString()}</span></div>
+          <div class="g"><span class="g-label">Depth</span><span class="g-val">${depth} km</span></div>
+          <div class="g"><span class="g-label">Coords</span><span class="g-val">${e.latitude.toFixed(2)}, ${e.longitude.toFixed(2)}</span></div>
+          <div class="g"><span class="g-label">Source</span><span class="g-val">${e.source}</span></div>
+        </div>
+      </div>`);
   }
 
   /* ---------- Rendering: sidebar feed ---------- */
@@ -699,67 +739,75 @@
   /* ---------- Timeline ---------- */
   function updateTimelineLabels() {
     const t = state.timeRange;
-    let startStr, endStr;
-    if (state.days > 0 && t.length) {
-      const end = new Date();
-      const start = new Date(end.getTime() - state.days * 86400000);
-      startStr = start.toLocaleDateString();
-      endStr = end.toLocaleDateString();
-    } else if (t.length) {
-      if (state.days === 0) {
-        // All-Time: show full historical DB span (2020-01-02 → now)
-        startStr = new Date('2020-01-02').toLocaleDateString();
-        endStr = new Date().toLocaleDateString();
-      } else {
-        startStr = new Date(t[0]).toLocaleDateString();
-        endStr = new Date(t[t.length - 1]).toLocaleDateString();
-      }
-    } else {
-      startStr = '—';
-      endStr = '—';
-    }
-    $('tl-date-start').textContent = startStr;
-    $('tl-date-end').textContent = endStr;
     if (!t.length) {
+      $('tl-date-start').textContent = '—';
+      $('tl-date-end').textContent = '—';
       $('tl-date').textContent = '—';
       $('tl-scrubber').max = 0;
       return;
     }
+    $('tl-date-start').textContent = new Date(t[0]).toLocaleDateString();
+    $('tl-date-end').textContent = new Date(t[t.length - 1]).toLocaleDateString();
     $('tl-scrubber').max = t.length - 1;
     $('tl-scrubber').value = Math.min(state.playback.idx, t.length - 1);
     $('tl-date').textContent = new Date(t[state.playback.idx] || t[0]).toLocaleDateString();
   }
 
-  function togglePlay() {
-    state.playing = !state.playing;
-    const icon = $('tl-play-icon');
-    icon.innerHTML = state.playing
-      ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>'
-      : '<path d="M7 4l12 8-12 8V4z"/>';
-    if (!state.playing) return;
-    const t = state.timeRange;
-    if (!t.length) return;
-    if (state.playback.idx >= t.length - 1) state.playback.idx = 0;
-    scheduleTick();
+  function stopPlayback() {
+    state.playing = false;
+    state.playback.tickId++;
+    $('tl-play-icon').innerHTML = '<path d="M7 4l12 8-12 8V4z"/>';
   }
 
-  function scheduleTick() {
-    if (!state.playing) return;
-    const step = 1000 / Math.max(1, Math.min(8, state.playback.speed));
-    setTimeout(() => {
-      if (!state.playing) return;
+  function togglePlay() {
+    if (state.playing) {
+      stopPlayback();
+      state.playback.idx = 0;
+      $('tl-scrubber').value = 0;
       const t = state.timeRange;
-      state.playback.idx = (state.playback.idx + 1) % Math.max(1, t.length);
+      $('tl-date').textContent = t.length ? new Date(t[0]).toLocaleDateString() : '—';
+      renderMarkers();
+      return;
+    }
+const sorted = getPlaybackData();
+    if (!sorted.length) return;
+    state.playing = true;
+    state.playback.tickId++;
+    state.playback.snapshot = sorted;
+    state.playback.idx = 0;
+    $('tl-scrubber').max = state.playback.snapshot.length - 1;
+    $('tl-play-icon').innerHTML = '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>';
+    renderMarkers();
+    scheduleTick(state.playback.tickId);
+  }
+
+  function scheduleTick(tickId) {
+    if (!state.playing) return;
+    if (tickId !== state.playback.tickId) return;
+    const step = 1000 / Math.max(1, Math.min(32, state.playback.speed));
+    setTimeout(() => {
+      if (!state.playing || tickId !== state.playback.tickId) return;
+      const snap = state.playback.snapshot;
+      state.playback.idx++;
+      if (state.playback.idx >= snap.length) {
+        stopPlayback();
+        state.playback.idx = 0;
+        $('tl-scrubber').value = 0;
+        $('tl-date').textContent = snap.length ? new Date(snap[0].event_time_utc).toLocaleDateString() : '—';
+        renderMarkers();
+        return;
+      }
       $('tl-scrubber').value = state.playback.idx;
-      $('tl-date').textContent = t.length ? new Date(t[state.playback.idx % t.length]).toLocaleDateString() : '—';
-      scheduleTick();
+      $('tl-date').textContent = new Date(snap[state.playback.idx].event_time_utc).toLocaleDateString();
+      if (markerVisible(snap[state.playback.idx])) addMarker(snap[state.playback.idx]);
+      scheduleTick(tickId);
     }, step);
   }
 
   function syncScrubber() {
     state.playback.idx = parseInt($('tl-scrubber').value, 10) || 0;
     const t = state.timeRange;
-    $('tl-date').textContent = t.length ? new Date(t[state.playback.idx % t.length]).toLocaleDateString() : '—';
+    $('tl-date').textContent = t.length ? new Date(t[Math.min(state.playback.idx, t.length - 1)]).toLocaleDateString() : '—';
   }
 
   /* ---------- Layer toggles ---------- */
@@ -781,6 +829,22 @@
   }
 
   /* ---------- Widget containment ---------- */
+  const WIDGET_ANCHOR = {
+    'layer-widget': { left: '0', bottom: '0' },
+    'legend-widget': { right: '0', bottom: '0' }
+  };
+  function clearWidgetInline(widget) {
+    widget.style.left = '';
+    widget.style.top = '';
+    widget.style.right = '';
+    widget.style.bottom = '';
+  }
+  function snapWidgetToCorner(widget) {
+    const anchor = WIDGET_ANCHOR[widget.id];
+    if (!anchor) return;
+    clearWidgetInline(widget);
+    Object.assign(widget.style, anchor);
+  }
   function keepWidgetInside(widget) {
     const host = document.querySelector('.map-viewport');
     if (!host || !widget.offsetParent) return;
@@ -1047,7 +1111,7 @@
     function setCollapsed(collapsed) {
       widget.classList.toggle('collapsed', collapsed);
       btn.setAttribute('aria-expanded', String(!collapsed));
-      keepWidgetInside(widget);
+      snapWidgetToCorner(widget);
     }
 
     function armTimer() {
@@ -1191,9 +1255,8 @@
       if (e.target === $('table-modal')) closeModal('table-modal');
     });
 
-    /* Export / sort */
+    /* Export */
     $('btn-export-csv').addEventListener('click', exportCSV);
-    $('btn-sort').addEventListener('click', cycleSort);
 
     /* Table sort */
     document.querySelectorAll('#data-table th[data-sort]').forEach(th => {

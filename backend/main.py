@@ -91,8 +91,10 @@ def query_db(db_file, min_mag, max_mag, limit, region_filter, start_date=None, e
         sw_lat, sw_lon, ne_lat, ne_lon = bbox
         sql += " AND latitude >= ? AND latitude <= ? AND longitude >= ? AND longitude <= ?"
         params.extend([sw_lat, ne_lat, sw_lon, ne_lon])
-    sql += " ORDER BY event_time_utc DESC LIMIT ?"
-    params.append(limit)
+    sql += " ORDER BY event_time_utc DESC"
+    if limit:
+        sql += " LIMIT ?"
+        params.append(limit)
     rows = conn.execute(sql, params).fetchall()
     results = [dict(r) for r in rows]
     conn.close()
@@ -118,7 +120,7 @@ async def list_earthquakes(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
     bbox: Optional[str] = Query(None),
-    limit: int = Query(50),
+    limit: Optional[int] = Query(None),
     offset: int = Query(0)
 ):
     bbox_coords = None
@@ -131,9 +133,10 @@ async def list_earthquakes(
     all_results = []
     for db_file in get_db(region):
         region_filter = "canada" if "canada" in db_file else "china"
-        all_results.extend(query_db(db_file, min_mag, max_mag, limit + offset, region_filter, start_date, end_date, bbox_coords))
-    paginated = all_results[offset:offset + limit]
-    return {"region": region or "all", "count": len(all_results), "items": paginated}
+        all_results.extend(query_db(db_file, min_mag, max_mag, limit, region_filter, start_date, end_date, bbox_coords))
+    if limit:
+        all_results = all_results[offset:offset + limit]
+    return {"region": region or "all", "count": len(all_results), "items": all_results}
 
 @app.get("/api/v1/earthquakes/stats")
 async def stats():
