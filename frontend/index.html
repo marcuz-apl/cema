@@ -284,66 +284,234 @@
   </div>
 </div>
 
-<!-- ==================== ANALYTICS MODAL ==================== -->
-<div class="modal-backdrop" id="analytics-modal" role="dialog" aria-modal="true" aria-label="Analytics">
-  <div class="modal" id="analytics-modal-panel">
-    <div class="modal-header">
+<!-- ==================== ANALYTICS DECK ==================== -->
+<div class="modal-backdrop" id="analytics-modal" role="dialog" aria-modal="true" aria-label="Analytics deck">
+  <div class="modal modal-analytics" id="analytics-modal-panel">
+    <div class="modal-header modal-analytics-header">
       <div class="modal-title">
         <svg viewBox="0 0 24 24"><path d="M4 19h16M7 15l3-3 3 3 5-6"/><path d="M4 5v14"/></svg>
-        Analytics Overview
+        <span>Seismic Analytics Deck</span>
+      </div>
+      <div class="analytics-scope-toggle" id="analytics-scope-toggle" role="group" aria-label="Dataset scope">
+        <button class="scope-btn active" data-scope="archive" id="btn-scope-archive">Archive (<span id="analytics-arch-count">—</span>)</button>
+        <button class="scope-btn" data-scope="view" id="btn-scope-view">Filtered (<span id="analytics-view-count">—</span>)</button>
       </div>
       <div class="modal-actions">
+        <button class="modal-btn-report" id="btn-export-analytics-pdf" title="Print 1-page PDF bulletin" aria-label="Export PDF bulletin">PDF</button>
+        <button class="modal-btn-report" id="btn-export-analytics-png" title="Download PNG bulletin" aria-label="Export PNG bulletin">PNG</button>
         <button class="modal-close" id="analytics-modal-close" aria-label="Close">
           <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
     </div>
-    <div class="modal-body">
-      <div class="analytics-grid">
-        <div class="stat-card">
-          <div class="stat-label">Total events</div>
-          <div class="stat-value accent" id="analytics-total">—</div>
-          <div class="stat-sub">Verified events (Canada + China)</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Max magnitude</div>
-          <div class="stat-value" id="analytics-max">—</div>
-          <div class="stat-sub">Strongest tremor recorded</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">24h activity</div>
-          <div class="stat-value gold" id="analytics-24h">—</div>
-          <div class="stat-sub">Events in the last 24 hours</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Avg depth</div>
-          <div class="stat-value" id="analytics-depth">—</div>
-          <div class="stat-sub">Mean hypocentral depth</div>
-        </div>
-      </div>
 
-      <div class="chart-section">
-        <div class="chart-title">
-          <span>Magnitude Distribution</span>
-          <span class="chart-sub">Count by tier</span>
-        </div>
-        <div class="bar-chart" id="mag-bars"></div>
-      </div>
+    <nav class="analytics-tabs-nav" id="analytics-tabs-nav" role="tablist">
+      <button class="analytics-tab-btn active" data-tab="overview" role="tab"><span class="tab-icon">📊</span> Overview</button>
+      <button class="analytics-tab-btn" data-tab="time" role="tab"><span class="tab-icon">⏱</span> Time</button>
+      <button class="analytics-tab-btn" data-tab="energy" role="tab"><span class="tab-icon">⚡</span> Energy</button>
+      <button class="analytics-tab-btn" data-tab="regions" role="tab"><span class="tab-icon">📍</span> Regions</button>
+    </nav>
 
-      <div class="region-dist" aria-label="Region distribution">
-        <div class="region-stat">
-          <div class="region-name"><span>🇨🇦</span> Canada</div>
-          <div class="region-flow"><span id="analytics-canada">—</span></div>
-          <div class="region-note">NRCan verified events</div>
-          <div class="region-fill"><div class="fill-bar" id="analytics-canada-bar" style="width:0%"></div></div>
+    <div class="modal-body analytics-modal-body">
+
+      <!-- TAB 1 · OVERVIEW -->
+      <section class="analytics-tab-pane active" id="tab-analytics-overview" role="tabpanel">
+        <div class="analytics-kpi-ribbon">
+          <div class="kpi-chip">
+            <span class="kpi-label">Catalog Events</span>
+            <span class="kpi-val sky" id="analytics-total-quakes">—</span>
+            <span class="kpi-sub" id="analytics-date-range">—</span>
+          </div>
+          <div class="kpi-chip">
+            <span class="kpi-label">Mean Focal Depth</span>
+            <span class="kpi-val emerald" id="analytics-avg-depth-kpi">—</span>
+            <span class="kpi-sub">Hypocenter composite</span>
+          </div>
+          <div class="kpi-chip">
+            <span class="kpi-label">Peak Magnitude</span>
+            <span class="kpi-val rose" id="analytics-max-mag-kpi">—</span>
+            <span class="kpi-sub" id="analytics-max-loc-kpi">—</span>
+          </div>
+          <div class="kpi-chip">
+            <span class="kpi-label">Last 24 Hours</span>
+            <span class="kpi-val amber" id="analytics-24h-kpi">—</span>
+            <span class="kpi-sub">Real-time window</span>
+          </div>
         </div>
-        <div class="region-stat blue">
-          <div class="region-name"><span>🇨🇳</span> China</div>
-          <div class="region-flow"><span id="analytics-china">—</span></div>
-          <div class="region-note">CENC verified events</div>
-          <div class="region-fill"><div class="fill-bar" id="analytics-china-bar" style="width:0%"></div></div>
+
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <h4>Magnitude Spectrum</h4>
+              <span class="analytics-badge" id="analytics-mag-badge">Distribution</span>
+            </div>
+            <div id="analytics-mag-chart" class="chart-bars"></div>
+          </div>
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <h4>Hypocenter Stratification</h4>
+              <span class="analytics-badge" id="analytics-avg-depth">Mean: —</span>
+            </div>
+            <div id="analytics-depth-summary" class="depth-stats"></div>
+          </div>
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <h4>Provider Ingest Share</h4>
+              <span class="analytics-badge">Feeds</span>
+            </div>
+            <div id="analytics-source-chart" class="source-stats"></div>
+          </div>
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <h4>Catalog Health</h4>
+              <span class="analytics-badge" id="analytics-health-badge">G-R Statistics</span>
+            </div>
+            <div id="analytics-health-summary" class="health-stats"></div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <!-- TAB 2 · TIME -->
+      <section class="analytics-tab-pane" id="tab-analytics-time" role="tabpanel">
+        <div class="analytics-card analytics-card-timeline">
+          <div class="card-title-row">
+            <h4>Monthly Seismicity &amp; Event Rate (<span id="analytics-timeline-range">—</span>)</h4>
+            <span class="analytics-badge" id="analytics-peak-month-badge">Peak: —</span>
+          </div>
+          <div class="chart-timeline-container">
+            <div id="analytics-monthly-chart" class="chart-monthly-svg"></div>
+            <div class="chart-timeline-legend">
+              <span class="legend-chip"><span class="legend-dot" style="background:#38bdf8"></span> Baseline (&lt; 50/mo)</span>
+              <span class="legend-chip"><span class="legend-dot" style="background:#f59e0b"></span> Elevated (50–100/mo)</span>
+              <span class="legend-chip"><span class="legend-dot" style="background:#ef4444"></span> Swarm activity (≥ 100/mo)</span>
+            </div>
+            <div class="timeline-window-slider">
+              <span class="slider-label" id="timeline-slider-label">Full window</span>
+              <input type="range" id="timeline-window-range" min="0" max="100" value="100" step="1" aria-label="Pan timeline window">
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-grid analytics-grid-time-lower">
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <h4>Diurnal Detection Rhythm</h4>
+              <span class="analytics-badge">Local Time</span>
+            </div>
+            <p class="card-desc">Hourly event frequency in each region's own reference clock — 🇨🇦 America/Toronto, 🇨🇳 Asia/Shanghai — overlaid as a stacked series.</p>
+            <div class="diurnal-legend">
+              <span class="legend-chip"><span class="legend-dot" style="background:#ef4444"></span> 🇨🇦 Canada · Toronto time</span>
+              <span class="legend-chip"><span class="legend-dot" style="background:#f59e0b"></span> 🇨🇳 China · Shanghai time</span>
+            </div>
+            <div id="analytics-diurnal-chart" class="chart-diurnal-bars"></div>
+          </div>
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <h4>Day-of-Week Activity Profile</h4>
+              <span class="analytics-badge">Weekly Cycle</span>
+            </div>
+            <p class="card-desc">Strain-release distribution across the 7-day calendar, demonstrating non-periodic stochasticity.</p>
+            <div id="analytics-dow-chart" class="chart-dow-bars"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3 · ENERGY -->
+      <section class="analytics-tab-pane" id="tab-analytics-energy" role="tabpanel">
+        <div class="analytics-kpi-ribbon">
+          <div class="kpi-chip">
+            <span class="kpi-label">Total Seismic Energy</span>
+            <span class="kpi-val amber" id="analytics-energy-joules">—</span>
+            <span class="kpi-sub">Gutenberg-Richter relation</span>
+          </div>
+          <div class="kpi-chip">
+            <span class="kpi-label">TNT Equivalent</span>
+            <span class="kpi-val rose" id="analytics-energy-tnt">—</span>
+            <span class="kpi-sub">Megatons of TNT</span>
+          </div>
+          <div class="kpi-chip">
+            <span class="kpi-label">Peak Sequence Share</span>
+            <span class="kpi-val purple" id="analytics-energy-concentration">—</span>
+            <span class="kpi-sub" id="analytics-energy-concentration-sub">Dominant single day</span>
+          </div>
+          <div class="kpi-chip">
+            <span class="kpi-label">Energy Multiplier</span>
+            <span class="kpi-val sky">31.62×</span>
+            <span class="kpi-sub">Release per +1.0 Mag</span>
+          </div>
+        </div>
+
+        <div class="analytics-grid-energy">
+          <div class="analytics-card card-energy-main">
+            <div class="card-title-row">
+              <h4>Cumulative Seismic Energy Release</h4>
+              <span class="analytics-badge">ΣE (Joules)</span>
+            </div>
+            <p class="card-desc">Cumulative rupture energy from <strong>log₁₀ E = 4.8 + 1.5M<sub>w</sub></strong>. The curve steps at every major sequence.</p>
+            <div id="analytics-energy-curve" class="energy-curve-wrapper"></div>
+          </div>
+          <div class="energy-side-col">
+            <div class="analytics-card card-energy-benchmarks">
+              <div class="card-title-row">
+                <h4>Energy Equivalency Reference</h4>
+                <span class="analytics-badge">Physics</span>
+              </div>
+              <div class="energy-benchmarks-list">
+                <div class="benchmark-row"><span class="benchmark-mag" style="color:#10b981">M 4.0</span><span class="benchmark-joules">6.3 × 10<sup>10</sup> J</span><span class="benchmark-desc">≈ 15 t TNT · quarry blast</span></div>
+                <div class="benchmark-row"><span class="benchmark-mag" style="color:#38bdf8">M 5.0</span><span class="benchmark-joules">2.0 × 10<sup>12</sup> J</span><span class="benchmark-desc">≈ 480 t TNT · moderate shaking</span></div>
+                <div class="benchmark-row"><span class="benchmark-mag" style="color:#f59e0b">M 6.0</span><span class="benchmark-joules">6.3 × 10<sup>13</sup> J</span><span class="benchmark-desc">≈ 15 kt TNT · severe damage</span></div>
+                <div class="benchmark-row"><span class="benchmark-mag" style="color:#ef4444">M 7.0</span><span class="benchmark-joules">2.0 × 10<sup>15</sup> J</span><span class="benchmark-desc">≈ 480 kt TNT · major event</span></div>
+                <div class="benchmark-row benchmark-high"><span class="benchmark-mag" style="color:#ec4899">M 7.8</span><span class="benchmark-joules">3.2 × 10<sup>16</sup> J</span><span class="benchmark-desc">≈ 7.6 Mt TNT · great earthquake</span></div>
+              </div>
+            </div>
+            <div class="analytics-card card-energy-insight">
+              <div class="card-title-row">
+                <h4>Regional Energy Partition</h4>
+                <span class="analytics-badge">ΣE by Catalog</span>
+              </div>
+              <div class="energy-insight-box">
+                <p>Energy scales as <strong>10<sup>1.5·ΔM</sup> ≈ 31.62×</strong> per magnitude unit, so a single M7-class rupture outweighs thousands of microevents. Partition below shows each catalog's share of total moment release.</p>
+              </div>
+              <div class="mini-label">Catalog ΣE Contribution</div>
+              <div id="analytics-region-energy-chart" class="share-stats"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4 · REGIONS -->
+      <section class="analytics-tab-pane" id="tab-analytics-regions" role="tabpanel">
+        <div class="analytics-grid-regions">
+          <div class="analytics-card card-regions-left">
+            <div class="card-title-row">
+              <h4>Top 15 Seismogenic Provinces</h4>
+              <span class="analytics-badge">Ranked Density</span>
+            </div>
+            <p class="card-desc">Ranked by event frequency and peak magnitude across the Canada and China catalogs, tagged by tectonic province.</p>
+            <div id="analytics-top-regions-list" class="region-stats-extended"></div>
+            <div class="tectonic-belts-summary" id="analytics-belts-summary"></div>
+          </div>
+          <div class="regions-right-col">
+            <div class="analytics-card">
+              <div class="card-title-row">
+                <h4>Hypocenter Depth × Magnitude Matrix</h4>
+                <span class="analytics-badge">2D Seismicity</span>
+              </div>
+              <p class="card-desc">Binned distribution correlating focal depth strata with magnitude classes.</p>
+              <div id="analytics-cross-matrix" class="matrix-wrapper"></div>
+            </div>
+            <div class="analytics-card">
+              <div class="card-title-row">
+                <h4>Focal Depth Distribution</h4>
+                <span class="analytics-badge">Depth Tiers</span>
+              </div>
+              <p class="card-desc">Histogram of hypocentral depth by tier.</p>
+              <div id="analytics-depth-histogram" class="depth-histogram-wrapper"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
   </div>
 </div>
@@ -353,6 +521,7 @@
 
 <!-- ==================== SCRIPTS ==================== -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 (() => {
   'use strict';
@@ -382,8 +551,12 @@
     playing: false,
     playback: { idx: 0, speed: 32, tickId: 0, snapshot: [] },
     timeRange: [],
-    audioEnabled: false
+    audioEnabled: false,
+    analyticsScope: 'archive',
+    analyticsTab: 'overview'
   };
+  let fullCatalogCache = null;
+  const timelineState = { months: null, counts: null, maxM: null, sliderBound: false };
 
   /* ---------- DOM refs ---------- */
   const $ = id => document.getElementById(id);
@@ -396,9 +569,6 @@
   function magColor(m) {
     const tier = MAG_TIERS.find(t => m < t.max);
     return tier ? tier.color : '#9333EA';
-  }
-  function magTierIndex(m) {
-    return MAG_TIERS.findIndex(t => m < t.max);
   }
 
   /* ---------- Map initialization ---------- */
@@ -1005,42 +1175,651 @@ const sorted = getPlaybackData();
     showToast('CSV exported', 'success');
   }
 
-  /* ---------- Analytics ---------- */
+  /* ---------- Analytics deck ---------- */
+  const AN_WINDOW = 36; // months in the timeline window
+
+  async function fetchFullCatalogCache() {
+    if (fullCatalogCache && fullCatalogCache.length) return fullCatalogCache;
+    try {
+      const data = await api('/api/v1/earthquakes', { start_date: '2000-01-01', min_mag: 0 });
+      fullCatalogCache = data.items || [];
+      const el = $('analytics-arch-count');
+      if (el && fullCatalogCache.length) el.textContent = `${(fullCatalogCache.length / 1000).toFixed(1)}k`;
+      return fullCatalogCache;
+    } catch (err) {
+      console.warn('Analytics catalog preload failed:', err);
+      return [];
+    }
+  }
+
+  function ensureAnalyticsData() {
+    if (state.analyticsScope === 'archive' && !(fullCatalogCache && fullCatalogCache.length)) {
+      return fetchFullCatalogCache();
+    }
+    return Promise.resolve(fullCatalogCache || []);
+  }
+
+  function analyticsQuakes() {
+    if (state.analyticsScope === 'archive' && fullCatalogCache && fullCatalogCache.length) return fullCatalogCache;
+    return getPlaybackData(); // chronological copy of the filtered map view
+  }
+
+  function renderAnalytics() {
+    const quakes = analyticsQuakes();
+    const scopeArchive = $('btn-scope-archive'), scopeView = $('btn-scope-view');
+    if (scopeArchive && scopeView) {
+      scopeArchive.classList.toggle('active', state.analyticsScope === 'archive');
+      scopeView.classList.toggle('active', state.analyticsScope === 'view');
+    }
+    const archEl = $('analytics-arch-count');
+    if (archEl && fullCatalogCache) archEl.textContent = `${(fullCatalogCache.length / 1000).toFixed(1)}k`;
+    const viewEl = $('analytics-view-count');
+    if (viewEl) viewEl.textContent = (state.currentData || []).length.toLocaleString();
+    if (!quakes.length) return;
+
+    renderAnalyticsOverview(quakes);
+    renderAnalyticsTime(quakes);
+    renderAnalyticsEnergy(quakes);
+    renderAnalyticsRegions(quakes);
+  }
+
+  /* Aki (1965) tail fit: least squares on log10 N vs M over 0.5-mag bins at/beyond Mc */
+  function fitBValue(mags) {
+    const bins = {};
+    mags.forEach(m => { const k = Math.floor(m * 2) / 2; bins[k] = (bins[k] || 0) + 1; });
+    const pts = Object.entries(bins)
+      .map(([k, n]) => [parseFloat(k), Math.log10(n)])
+      .filter(([k]) => k >= 3.5)
+      .sort((a, b) => a[0] - b[0]);
+    if (pts.length < 3) return null;
+    const n = pts.length;
+    const sx = pts.reduce((s, p) => s + p[0], 0);
+    const sy = pts.reduce((s, p) => s + p[1], 0);
+    const sxx = pts.reduce((s, p) => s + p[0] * p[0], 0);
+    const sxy = pts.reduce((s, p) => s + p[0] * p[1], 0);
+    const denom = n * sxx - sx * sx;
+    if (!denom) return null;
+    return Math.abs((n * sxy - sx * sy) / denom);
+  }
+
+  const PROV_CANON = {
+    yt: 'Yukon', bc: 'British Columbia', on: 'Ontario', qc: 'Québec', nu: 'Nunavut',
+    nt: 'Northwest Territories', ab: 'Alberta', sk: 'Saskatchewan', mb: 'Manitoba',
+    nb: 'New Brunswick', ns: 'Nova Scotia', nl: 'Newfoundland and Labrador', pe: 'Prince Edward Island'
+  };
+  function provinceName(e) {
+    if (!e.province) return null;
+    const k = e.province.toLowerCase();
+    if (e.region === 'canada' && PROV_CANON[k]) return PROV_CANON[k];
+    return e.province;
+  }
+  function beltFor(name, region) {
+    const u = (name || '').toUpperCase();
+    if (region === 'canada') {
+      if (/BRITISH COLUMBIA|YUKON|NUNAVUT|NORTHWEST/.test(u)) return { tag: 'CASC', cls: 'tag-casc', belt: 'Pacific Cordillera & Cascadia' };
+      if (/ALBERTA|SASKATCHEWAN|MANITOBA/.test(u)) return { tag: 'WRAN', cls: 'tag-wran', belt: 'Western Interior Platform' };
+      return { tag: 'SHLD', cls: 'tag-shld', belt: 'Canadian Shield & Stable Interior' };
+    }
+    if (/XINJIANG|XIZANG|QINGHAI|GANSU|SICHUAN|YUNNAN|NINGXIA|CHONGQING/.test(u)) return { tag: 'TIBH', cls: 'tag-tibh', belt: 'Tibetan–Himalayan Collision Belt' };
+    return { tag: 'CRAT', cls: 'tag-crat', belt: 'East Asian Craton & Margin' };
+  }
+
+  /** Tab 1 · Overview & catalog distribution */
+  function renderAnalyticsOverview(quakes) {
+    const magChart = $('analytics-mag-chart');
+    const depthSummary = $('analytics-depth-summary');
+    const sourceChart = $('analytics-source-chart');
+    const healthSummary = $('analytics-health-summary');
+
+    let totalDepth = 0, maxMag = 0, maxLoc = '—', count24h = 0;
+    const nowMs = Date.now();
+    let minDate = '9999', maxDate = '0000';
+    const mags = [];
+
+    const bins = {
+      '< 3.0 (Minor)': { count: 0, color: '#10b981' },
+      '3.0–3.9 (Light)': { count: 0, color: '#38bdf8' },
+      '4.0–4.9 (Moderate)': { count: 0, color: '#f59e0b' },
+      '5.0–5.9 (Strong)': { count: 0, color: '#f97316' },
+      '6.0–6.9 (Major)': { count: 0, color: '#ef4444' },
+      '≥ 7.0 (Great)': { count: 0, color: '#ec4899' }
+    };
+    let shallow = 0, intermediate = 0, deep = 0;
+    const sourceCounts = {};
+
+    quakes.forEach(e => {
+      const m = parseFloat(e.magnitude) || 0;
+      const d = parseFloat(e.depth_km) || 0;
+      totalDepth += d;
+      mags.push(m);
+      if (m > maxMag) {
+        maxMag = m;
+        const rn = e.region || 'Offshore';
+        maxLoc = provinceName(e) || `${REGIONS[e.region] || '🌍'} ${rn.charAt(0).toUpperCase()}${rn.slice(1)}`;
+      }
+      const tStr = e.event_time_utc || '';
+      if (tStr) {
+        if (tStr < minDate) minDate = tStr;
+        if (tStr > maxDate) maxDate = tStr;
+        if (nowMs - new Date(tStr).getTime() <= 86400000) count24h++;
+      }
+      if (m < 3.0) bins['< 3.0 (Minor)'].count++;
+      else if (m < 4.0) bins['3.0–3.9 (Light)'].count++;
+      else if (m < 5.0) bins['4.0–4.9 (Moderate)'].count++;
+      else if (m < 6.0) bins['5.0–5.9 (Strong)'].count++;
+      else if (m < 7.0) bins['6.0–6.9 (Major)'].count++;
+      else bins['≥ 7.0 (Great)'].count++;
+      if (d < 10) shallow++;
+      else if (d <= 30) intermediate++;
+      else deep++;
+      const src = e.source || 'Unclassified';
+      if (!sourceCounts[src]) sourceCounts[src] = { count: 0, color: '#3B82F6' };
+      sourceCounts[src].count++;
+    });
+
+    const badge = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+    badge('analytics-total-quakes', quakes.length.toLocaleString());
+    const avgD = quakes.length ? (totalDepth / quakes.length).toFixed(1) : '0';
+    badge('analytics-avg-depth-kpi', `${avgD} km`);
+    badge('analytics-avg-depth', `Mean: ${avgD} km`);
+    badge('analytics-max-mag-kpi', `M${maxMag.toFixed(1)}`);
+    badge('analytics-max-loc-kpi', maxLoc);
+    badge('analytics-24h-kpi', `${count24h} events`);
+    if (minDate !== '9999') badge('analytics-date-range', `${minDate.substring(0, 10)} — ${maxDate.substring(0, 10)}`);
+
+    if (magChart) {
+      const maxCount = Math.max(1, ...Object.values(bins).map(b => b.count));
+      magChart.innerHTML = Object.entries(bins).map(([label, data]) => {
+        const pct = Math.round((data.count / maxCount) * 100);
+        const share = Math.round((data.count / (quakes.length || 1)) * 100);
+        return `
+          <div class="chart-bar-row">
+            <span class="chart-bar-label">${label}</span>
+            <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%;--bar-color:${data.color}"></div></div>
+            <span class="chart-bar-count">${data.count.toLocaleString()} <em>(${share}%)</em></span>
+          </div>`;
+      }).join('');
+    }
+
+    if (depthSummary) {
+      const row = (label, val, color) =>
+        `<div class="stat-row"><span>${label}</span><strong style="color:${color}">${val}</strong></div>`;
+      const pc = n => Math.round((n / (quakes.length || 1)) * 100);
+      depthSummary.innerHTML =
+        row('Shallow Crustal (&lt; 10 km) — Direct Rupture Risk', `${shallow.toLocaleString()} (${pc(shallow)}%)`, '#ef4444') +
+        row('Intermediate (10 – 30 km) — Seismogenic Zone', `${intermediate.toLocaleString()} (${pc(intermediate)}%)`, '#f59e0b') +
+        row('Deep Lithospheric (&gt; 30 km)', `${deep.toLocaleString()} (${pc(deep)}%)`, '#38bdf8') +
+        row('Catalog Mean Focal Depth', `${avgD} km hypocenter`, 'var(--accent)');
+    }
+
+    if (sourceChart) {
+      const top = Object.entries(sourceCounts).sort((a, b) => b[1].count - a[1].count).slice(0, 5);
+      sourceChart.innerHTML = top.map(([name, data]) => {
+        const share = Math.round((data.count / (quakes.length || 1)) * 100);
+        return `
+          <div class="source-row">
+            <div class="source-info"><span class="source-dot" style="background:${data.color}"></span><span class="source-name">${name}</span></div>
+            <span class="source-count">${data.count.toLocaleString()} <em>(${share}%)</em></span>
+          </div>`;
+      }).join('');
+    }
+
+    if (healthSummary) {
+      const bVal = fitBValue(mags);
+      const spanYears = minDate !== '9999'
+        ? ((new Date(maxDate.substring(0, 10)) - new Date(minDate.substring(0, 10))) / (365.25 * 86400000)).toFixed(1)
+        : '—';
+      const row = (label, val, sub) =>
+        `<div class="stat-row"><span>${label}</span><strong>${val}${sub ? ` <em>${sub}</em>` : ''}</strong></div>`;
+      healthSummary.innerHTML =
+        row('Gutenberg-Richter b-value:', bVal != null ? `b ≈ ${bVal.toFixed(2)}` : '—', 'fit M ≥ 3.5 · normal ≈ 1.0') +
+        row('Catalog Completeness (M<sub>c</sub>):', 'M ≥ 2.5', 'NRCan + CENC + USGS routing') +
+        row('Monitored Horizon:', `${spanYears} years`, 'live ingest') +
+        row('Region Split:', (() => {
+          const ca = quakes.filter(e => e.region === 'canada').length;
+          return `🇨🇦 ${ca.toLocaleString()} · 🇨🇳 ${(quakes.length - ca).toLocaleString()}`;
+        })(), '');
+      const hb = $('analytics-health-badge');
+      if (hb) hb.textContent = bVal != null ? (bVal > 1.15 ? 'Swarm-enriched' : bVal < 0.75 ? 'Stress-loaded' : 'Tectonic Normal') : 'G-R Statistics';
+    }
+  }
+
+  /** Tab 2 · Temporal trends */
+  function renderAnalyticsTime(quakes) {
+    const monthlyContainer = $('analytics-monthly-chart');
+    const diurnalContainer = $('analytics-diurnal-chart');
+    const dowContainer = $('analytics-dow-chart');
+
+    const monthCounts = {}, monthMaxM = {};
+    const hourCA = new Array(24).fill(0), hourCN = new Array(24).fill(0);
+    const dowCounts = [{ name: 'Mon', count: 0 }, { name: 'Tue', count: 0 }, { name: 'Wed', count: 0 },
+      { name: 'Thu', count: 0 }, { name: 'Fri', count: 0 }, { name: 'Sat', count: 0 }, { name: 'Sun', count: 0 }];
+
+    // Cached local-hour formatters (diurnal runs in each region's own clock)
+    const fmtHour = renderAnalyticsTime._fmt || (renderAnalyticsTime._fmt = {
+      ca: new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Toronto', hour: '2-digit', hourCycle: 'h23' }),
+      cn: new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Shanghai', hour: '2-digit', hourCycle: 'h23' })
+    });
+    const localHour = (fmt, d) => parseInt(fmt.format(d).replace(/\D/g, ''), 10) % 24;
+
+    quakes.forEach(e => {
+      const tStr = e.event_time_utc || '';
+      const m = parseFloat(e.magnitude) || 0;
+      if (!tStr) return;
+      const ym = tStr.substring(0, 7);
+      monthCounts[ym] = (monthCounts[ym] || 0) + 1;
+      if (!monthMaxM[ym] || m > monthMaxM[ym]) monthMaxM[ym] = m;
+      const dObj = new Date(tStr);
+      if (e.region === 'canada') hourCA[localHour(fmtHour.ca, dObj)]++;
+      else hourCN[localHour(fmtHour.cn, dObj)]++;
+      dowCounts[(dObj.getUTCDay() + 6) % 7].count++;
+    });
+
+    if (monthlyContainer) {
+      const raw = Object.keys(monthCounts).sort();
+      const months = [];
+      if (raw.length) {
+        let [cy, cm] = raw[0].split('-').map(Number);
+        const [ey, em] = raw[raw.length - 1].split('-').map(Number);
+        while (cy < ey || (cy === ey && cm <= em)) {
+          const key = `${cy}-${String(cm).padStart(2, '0')}`;
+          months.push(key);
+          if (!(key in monthCounts)) monthCounts[key] = 0;
+          cm++; if (cm > 12) { cm = 1; cy++; }
+        }
+      }
+      timelineState.months = months;
+      timelineState.counts = monthCounts;
+      timelineState.maxM = monthMaxM;
+
+      const slider = $('timeline-window-range');
+      if (slider) {
+        slider.disabled = months.length <= AN_WINDOW;
+        if (!timelineState.sliderBound) {
+          slider.addEventListener('input', renderMonthlyTimelineWindow);
+          timelineState.sliderBound = true;
+        }
+      }
+      renderMonthlyTimelineWindow();
+    }
+
+    if (diurnalContainer) {
+      const maxHour = Math.max(1, ...hourCA.map((v, i) => v + hourCN[i]));
+      diurnalContainer.innerHTML = hourCA.map((caCount, hr) => {
+        const cnCount = hourCN[hr];
+        const hCa = Math.round((caCount / maxHour) * 100);
+        const hCn = Math.round((cnCount / maxHour) * 100);
+        const label = hr % 4 === 0 ? `${hr}h` : '';
+        return `
+          <div class="diurnal-col" title="${String(hr).padStart(2, '0')}:00 — 🇨🇦 ${caCount.toLocaleString()} · 🇨🇳 ${cnCount.toLocaleString()} local-time events">
+            <div class="diurnal-stack">
+              <div class="diurnal-bar cn" style="height:${Math.max(hCn, cnCount ? 4 : 0)}%"></div>
+              <div class="diurnal-bar ca" style="height:${Math.max(hCa, caCount ? 4 : 0)}%"></div>
+            </div>
+            <span class="diurnal-label">${label}</span>
+          </div>`;
+      }).join('');
+    }
+
+    if (dowContainer) {
+      const maxDow = Math.max(1, ...dowCounts.map(d => d.count));
+      dowContainer.innerHTML = dowCounts.map(d => {
+        const pct = Math.round((d.count / maxDow) * 100);
+        const share = Math.round((d.count / (quakes.length || 1)) * 100);
+        return `
+          <div class="dow-col" title="${d.name}: ${d.count.toLocaleString()} events (${share}%)">
+            <div class="dow-bar" style="height:${Math.max(8, pct)}%"></div>
+            <span class="dow-label">${d.name}</span>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  function renderMonthlyTimelineWindow() {
+    const monthlyContainer = $('analytics-monthly-chart');
+    if (!monthlyContainer || !timelineState.months) return;
+    const months = timelineState.months, counts = timelineState.counts, maxM = timelineState.maxM;
+    const slider = $('timeline-window-range');
+    const sliderLabel = $('timeline-slider-label');
+    const rangeLabel = $('analytics-timeline-range');
+    const peakBadge = $('analytics-peak-month-badge');
+
+    let win;
+    if (months.length <= AN_WINDOW) win = months;
+    else {
+      const val = slider ? parseInt(slider.value, 10) : 100;
+      const offset = Math.round((val / 100) * (months.length - AN_WINDOW));
+      win = months.slice(offset, offset + AN_WINDOW);
+    }
+
+    if (rangeLabel && win.length) {
+      const fy = win[0].substring(0, 4), ly = win[win.length - 1].substring(0, 4);
+      rangeLabel.textContent = fy === ly ? fy : `${fy} – ${ly}`;
+    }
+    if (sliderLabel) sliderLabel.textContent = win.length ? `${win[0]} → ${win[win.length - 1]}` : '—';
+
+    let peakMonth = '', peakCount = 0;
+    win.forEach(ym => { if ((counts[ym] || 0) > peakCount) { peakCount = counts[ym]; peakMonth = ym; } });
+    if (peakBadge) peakBadge.textContent = peakMonth ? `Peak: ${peakMonth} (${peakCount.toLocaleString()} events)` : 'Peak: —';
+
+    const svgW = 1000, svgH = 280, padL = 48, padR = 20, padT = 22, padB = 34;
+    const plotW = svgW - padL - padR, plotH = svgH - padT - padB;
+    const maxVal = Math.max(peakCount, 100);
+    const slotW = plotW / (win.length || 1);
+    const barW = Math.max(3.5, slotW - 1.5);
+
+    let bars = '', ticks = '', lastYear = '';
+    win.forEach((ym, i) => {
+      const count = counts[ym] || 0;
+      const barH = (count / maxVal) * plotH;
+      const x = padL + i * slotW;
+      const y = padT + plotH - barH;
+      let color = '#38bdf8';
+      if (count >= 200) color = '#ef4444';
+      else if (count >= 100) color = '#f59e0b';
+      bars += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(barH, count > 0 ? 3 : 0)}" rx="2" fill="${color}" opacity="${count > 0 ? 0.92 : 0.2}"><title>${ym}: ${count.toLocaleString()} events (max M${(maxM[ym] || 0).toFixed(1)})</title></rect>`;
+      const yr = ym.substring(0, 4);
+      if (yr !== lastYear) {
+        ticks += `<text x="${x + 2}" y="${svgH - 10}" fill="#94a3b8" font-size="12" font-family="monospace" font-weight="700">${yr}</text><line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="rgba(127,127,127,0.14)" stroke-dasharray="3,3"/>`;
+        lastYear = yr;
+      }
+    });
+
+    monthlyContainer.innerHTML = `
+      <svg viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="none" class="deck-svg">
+        <line x1="${padL}" y1="${padT}" x2="${svgW - padR}" y2="${padT}" stroke="rgba(127,127,127,0.12)" stroke-dasharray="4,4"/>
+        <line x1="${padL}" y1="${padT + plotH / 2}" x2="${svgW - padR}" y2="${padT + plotH / 2}" stroke="rgba(127,127,127,0.12)" stroke-dasharray="4,4"/>
+        <line x1="${padL}" y1="${padT + plotH}" x2="${svgW - padR}" y2="${padT + plotH}" stroke="rgba(127,127,127,0.35)" stroke-width="1.5"/>
+        ${ticks}${bars}
+        <text x="8" y="${padT + 12}" fill="#94a3b8" font-size="10" font-family="monospace">${maxVal}</text>
+        <text x="8" y="${padT + plotH / 2 + 4}" fill="#64748b" font-size="10" font-family="monospace">${Math.round(maxVal / 2)}</text>
+        <text x="8" y="${padT + plotH}" fill="#64748b" font-size="10" font-family="monospace">0</text>
+      </svg>`;
+  }
+
+  /** Tab 3 · Seismic energy physics */
+  function renderAnalyticsEnergy(quakes) {
+    const curveContainer = $('analytics-energy-curve');
+    const partitionContainer = $('analytics-region-energy-chart');
+    let totalJoules = 0;
+    const dayJoules = {};
+    const regionJoules = { canada: 0, china: 0 };
+
+    const chrono = [...quakes].sort((a, b) => (a.event_time_utc || '').localeCompare(b.event_time_utc || ''));
+    chrono.forEach(e => {
+      const m = parseFloat(e.magnitude) || 0;
+      const je = Math.pow(10, 4.8 + 1.5 * m); // Gutenberg-Richter
+      totalJoules += je;
+      const day = (e.event_time_utc || '').substring(0, 10);
+      if (day) dayJoules[day] = (dayJoules[day] || 0) + je;
+      if (regionJoules[e.region] !== undefined) regionJoules[e.region] += je;
+    });
+
+    let peakDay = '', peakJ = 0;
+    Object.entries(dayJoules).forEach(([d, j]) => { if (j > peakJ) { peakJ = j; peakDay = d; } });
+    const sharePct = totalJoules > 0 ? (peakJ / totalJoules * 100).toFixed(1) : '—';
+
+    const badge = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+    badge('analytics-energy-joules', `${(totalJoules / 1e15).toFixed(1)} PJ`);
+    badge('analytics-energy-tnt', `${(totalJoules / 4.184e15).toFixed(1)} Mt`);
+    badge('analytics-energy-concentration', `${sharePct}%`);
+    badge('analytics-energy-concentration-sub', peakDay ? `${new Date(peakDay).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} · dominant sequence` : 'Dominant single day');
+
+    if (curveContainer && chrono.length) {
+      const svgW = 700, svgH = 290, padL = 50, padR = 20, padT = 25, padB = 35;
+      const plotW = svgW - padL - padR, plotH = svgH - padT - padB;
+      const tStart = new Date(chrono[0].event_time_utc).getTime();
+      const tEnd = new Date(chrono[chrono.length - 1].event_time_utc).getTime();
+      const tSpan = Math.max(1, tEnd - tStart);
+
+      const nSamples = 120;
+      const step = Math.max(1, Math.floor(chrono.length / nSamples));
+      let running = 0;
+      const points = [];
+      for (let i = 0; i < chrono.length; i++) {
+        running += Math.pow(10, 4.8 + 1.5 * (parseFloat(chrono[i].magnitude) || 0));
+        if (i % step === 0 || i === chrono.length - 1) {
+          const t = new Date(chrono[i].event_time_utc).getTime();
+          points.push({
+            x: padL + Math.max(0, Math.min(1, (t - tStart) / tSpan)) * plotW,
+            y: padT + plotH - (totalJoules > 0 ? running / totalJoules : 0) * plotH
+          });
+        }
+      }
+
+      let pathD = `M ${points[0].x} ${points[0].y}`;
+      for (let i = 1; i < points.length; i++) pathD += ` L ${points[i].x} ${points[i].y}`;
+      const areaD = `${pathD} L ${padL + plotW} ${padT + plotH} L ${padL} ${padT + plotH} Z`;
+
+      let annualTicks = '';
+      for (let yr = new Date(tStart).getUTCFullYear(); yr <= new Date(tEnd).getUTCFullYear(); yr++) {
+        const tYr = new Date(`${yr}-01-01T00:00:00Z`).getTime();
+        if (tYr >= tStart && tYr <= tEnd) {
+          const x = padL + ((tYr - tStart) / tSpan) * plotW;
+          annualTicks += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="rgba(127,127,127,0.1)" stroke-dasharray="3,3"/><text x="${x + 2}" y="${svgH - 10}" fill="#64748b" font-size="10" font-family="monospace">${yr}</text>`;
+        }
+      }
+
+      let anno = '';
+      if (peakDay) {
+        const tPeak = new Date(`${peakDay}T12:00:00Z`).getTime();
+        if (tPeak >= tStart && tPeak <= tEnd && parseFloat(sharePct) >= 5) {
+          const x = padL + ((tPeak - tStart) / tSpan) * plotW;
+          const label = `${new Date(peakDay).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })} sequence (≈${sharePct}% ΣE)`;
+          anno = `
+            <line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="rgba(236,72,153,0.45)" stroke-dasharray="4,3" stroke-width="1.5"/>
+            <circle cx="${x}" cy="${padT + plotH * 0.05}" r="5" fill="#ec4899"/>
+            <rect x="${Math.min(x + 8, padL + plotW - label.length * 6.2 - 16)}" y="${padT + 12}" width="${label.length * 6.2 + 12}" height="22" rx="4" fill="rgba(236,72,153,0.18)" stroke="rgba(236,72,153,0.5)"/>
+            <text x="${Math.min(x + 14, padL + plotW - label.length * 6.2 - 10)}" y="${padT + 27}" fill="#ec4899" font-size="10" font-family="monospace" font-weight="bold">${label}</text>`;
+        }
+      }
+
+      curveContainer.innerHTML = `
+        <svg viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="none" class="deck-svg">
+          <defs>
+            <linearGradient id="energyAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ec4899" stop-opacity="0.38"/><stop offset="60%" stop-color="#ec4899" stop-opacity="0.1"/><stop offset="100%" stop-color="#ec4899" stop-opacity="0"/>
+            </linearGradient>
+            <linearGradient id="energyLineGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#f59e0b"/><stop offset="45%" stop-color="#ec4899"/><stop offset="100%" stop-color="#38bdf8"/>
+            </linearGradient>
+          </defs>
+          <line x1="${padL}" y1="${padT + plotH}" x2="${padL + plotW}" y2="${padT + plotH}" stroke="rgba(127,127,127,0.3)"/>
+          <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + plotH}" stroke="rgba(127,127,127,0.3)"/>
+          <line x1="${padL}" y1="${padT + plotH * 0.5}" x2="${padL + plotW}" y2="${padT + plotH * 0.5}" stroke="rgba(127,127,127,0.12)" stroke-dasharray="3,3"/>
+          ${annualTicks}
+          <path d="${areaD}" fill="url(#energyAreaGrad)"/>
+          <path d="${pathD}" fill="none" stroke="url(#energyLineGrad)" stroke-width="2.8" stroke-linecap="round"/>
+          ${anno}
+          <text x="8" y="${padT + 10}" fill="#94a3b8" font-size="10" font-family="monospace">100%</text>
+          <text x="8" y="${padT + plotH * 0.5 + 4}" fill="#94a3b8" font-size="10" font-family="monospace">50%</text>
+          <text x="8" y="${padT + plotH}" fill="#64748b" font-size="10" font-family="monospace">0%</text>
+        </svg>`;
+    }
+
+    if (partitionContainer) {
+      const total = totalJoules || 1;
+      partitionContainer.innerHTML = [
+        { name: '🇨🇦 Canada', j: regionJoules.canada, color: '#ef4444' },
+        { name: '🇨🇳 China', j: regionJoules.china, color: '#f59e0b' }
+      ].map(r => {
+        const pct = (r.j / total) * 100;
+        return `
+          <div class="share-row">
+            <span class="share-name">${r.name}</span>
+            <div class="share-track"><div class="share-fill" style="width:${pct.toFixed(1)}%;--bar-color:${r.color}"></div></div>
+            <span class="share-count">${pct.toFixed(1)}%</span>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  /** Tab 4 · Regional seismicity & hypocenter cross-matrix */
+  function renderAnalyticsRegions(quakes) {
+    const topList = $('analytics-top-regions-list');
+    const beltsEl = $('analytics-belts-summary');
+    const matrixContainer = $('analytics-cross-matrix');
+    const depthHistContainer = $('analytics-depth-histogram');
+
+    const regionMap = {}; // name -> {count, maxM, region}
+    const depthBins = { '0–5 km': 0, '5–10 km': 0, '10–15 km': 0, '15–20 km': 0, '20–30 km': 0, '30–50 km': 0, '> 50 km': 0 };
+    const matrix = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    const belts = {}; // belt -> {tag, cls, name, count, maxM, energy}
+
+    quakes.forEach(e => {
+      const m = parseFloat(e.magnitude) || 0;
+      const d = parseFloat(e.depth_km) || 0;
+      const name = provinceName(e) || (e.region === 'canada' ? 'Offshore Canada' : 'Offshore China');
+      const region = e.region || 'other';
+      if (!regionMap[name]) regionMap[name] = { count: 0, maxM: 0, region };
+      regionMap[name].count++;
+      if (m > regionMap[name].maxM) regionMap[name].maxM = m;
+
+      if (d <= 5) depthBins['0–5 km']++;
+      else if (d <= 10) depthBins['5–10 km']++;
+      else if (d <= 15) depthBins['10–15 km']++;
+      else if (d <= 20) depthBins['15–20 km']++;
+      else if (d <= 30) depthBins['20–30 km']++;
+      else if (d <= 50) depthBins['30–50 km']++;
+      else depthBins['> 50 km']++;
+
+      const rIdx = d < 10 ? 0 : d <= 30 ? 1 : 2;
+      const cIdx = m < 3.0 ? 0 : m < 4.5 ? 1 : m < 6.0 ? 2 : 3;
+      matrix[rIdx][cIdx]++;
+
+      const b = beltFor(e.province ? name : null, region);
+      if (!belts[b.tag]) belts[b.tag] = { ...b, count: 0, maxM: 0, energy: 0 };
+      belts[b.tag].count++;
+      if (m > belts[b.tag].maxM) belts[b.tag].maxM = m;
+      belts[b.tag].energy += Math.pow(10, 4.8 + 1.5 * m);
+    });
+
+    if (topList) {
+      const sorted = Object.entries(regionMap).sort((a, b) => b[1].count - a[1].count).slice(0, 15);
+      const topMax = sorted[0] ? sorted[0][1].count : 1;
+      topList.innerHTML = sorted.map(([rName, rData], idx) => {
+        const pct = Math.round((rData.count / topMax) * 100);
+        const tag = beltFor(rData.region === 'canada' && !rName.startsWith('Offshore') ? rName : rData.region === 'canada' ? 'Canadian Shield' : rName, rData.region);
+        const flag = REGIONS[rData.region] || '🌍';
+        return `
+          <div class="region-row-ext" title="${rName}: ${rData.count.toLocaleString()} events • ${tag.belt}">
+            <span class="region-rank">#${idx + 1}</span>
+            <span class="region-tag-ext ${tag.cls}">${tag.tag}</span>
+            <span class="region-name-ext">${flag} ${rName}</span>
+            <div class="region-bar-track-ext"><div class="region-bar-fill-ext" style="width:${pct}%"></div></div>
+            <span class="region-count-ext">${rData.count.toLocaleString()} <em class="maxm">(M${rData.maxM.toFixed(1)})</em></span>
+          </div>`;
+      }).join('');
+    }
+
+    if (beltsEl) {
+      const totalEvents = quakes.length || 1;
+      const totalEnergy = Object.values(belts).reduce((s, b) => s + b.energy, 0) || 1;
+      beltsEl.innerHTML = Object.values(belts)
+        .sort((a, b) => b.count - a.count)
+        .map(b => {
+          const evPct = Math.round((b.count / totalEvents) * 100);
+          const enPct = (b.energy / totalEnergy * 100).toFixed(0);
+          return `
+            <div class="belt-item" title="${b.belt}">
+              <div class="belt-tag ${b.cls}">${b.tag}</div>
+              <div class="belt-name">${b.belt}</div>
+              <div class="belt-stat">${evPct}% evts · ${enPct}% ΣE · M${b.maxM.toFixed(1)}</div>
+            </div>`;
+        }).join('');
+    }
+
+    if (matrixContainer) {
+      let maxCell = 1;
+      matrix.forEach(row => row.forEach(v => { if (v > maxCell) maxCell = v; }));
+      const depthLabels = ['Shallow (< 10 km)', 'Interm. (10–30 km)', 'Deep (> 30 km)'];
+      const magHeaders = ['M < 3.0', '3.0 – 4.4', '4.5 – 5.9', 'M ≥ 6.0'];
+      const rowsHtml = matrix.map((row, rIdx) => `
+        <tr><td><strong>${depthLabels[rIdx]}</strong></td>${row.map((count, cIdx) => {
+          const alpha = (0.05 + (count / maxCell) * 0.45).toFixed(2);
+          const color = cIdx === 3 ? '#ec4899' : cIdx === 2 ? '#f59e0b' : '#38bdf8';
+          return `<td style="background:rgba(56,189,248,${alpha});color:${color}" title="${depthLabels[rIdx]} · ${magHeaders[cIdx]}: ${count.toLocaleString()} events">${count.toLocaleString()}</td>`;
+        }).join('')}</tr>`).join('');
+      matrixContainer.innerHTML = `
+        <table class="matrix-table">
+          <thead><tr><th>Depth \\ Mag</th>${magHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>`;
+    }
+
+    if (depthHistContainer) {
+      const maxDepthCount = Math.max(1, ...Object.values(depthBins));
+      depthHistContainer.innerHTML = Object.entries(depthBins).map(([dLabel, dCount]) => {
+        const pct = Math.round((dCount / maxDepthCount) * 100);
+        const share = Math.round((dCount / (quakes.length || 1)) * 100);
+        return `
+          <div class="chart-bar-row">
+            <span class="chart-bar-label">${dLabel}</span>
+            <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%;--bar-color:${dCount ? 'var(--accent)' : 'var(--border-strong)'}"></div></div>
+            <span class="chart-bar-count">${dCount.toLocaleString()} <em>(${share}%)</em></span>
+          </div>`;
+      }).join('');
+    }
+  }
+
   async function openAnalytics() {
-    const data = await api('/api/v1/earthquakes/stats');
-    const all = await api('/api/v1/earthquakes', { limit: 1000 });
-    const items = all.items || [];
-
-    $('analytics-total').textContent = data.total;
-    $('analytics-max').textContent = data.max_magnitude ? data.max_magnitude.toFixed(1) + ' M' : '—';
-    $('analytics-24h').textContent = data.total ? Math.round(data.total * 0.08) : '—';
-
-    const avgDepth = items.length
-      ? items.reduce((s, e) => s + (e.depth_km || 0), 0) / items.length
-      : 0;
-    $('analytics-depth').textContent = avgDepth ? `${avgDepth.toFixed(1)} km` : '—';
-
-    const canada = items.filter(e => e.region === 'canada').length;
-    const china = items.filter(e => e.region === 'china').length;
-    $('analytics-canada').textContent = canada;
-    $('analytics-china').textContent = china;
-    const total = canada + china || 1;
-    $('analytics-canada-bar').style.width = `${(canada / total) * 100}%`;
-    $('analytics-china-bar').style.width = `${(china / total) * 100}%`;
-
-    const counts = [0, 0, 0, 0, 0];
-    items.forEach(e => counts[magTierIndex(e.magnitude)]++);
-    const maxCount = Math.max(...counts, 1);
-    $('mag-bars').innerHTML = MAG_TIERS.map((tier, i) => `
-      <div class="chart-bar-row">
-        <span class="chart-bar-label">${tier.name}</span>
-        <div class="chart-bar-track">
-          <div class="chart-bar-fill" style="width:${(counts[i] / maxCount) * 100}%;--bar-color:${tier.color}"></div>
-        </div>
-        <span class="chart-bar-count">${counts[i]}</span>
-      </div>`).join('');
-
     openModal('analytics-modal');
+    renderAnalytics();
+    try { await ensureAnalyticsData(); } catch (err) { console.warn('Analytics data load failed:', err); }
+    renderAnalytics();
+  }
+
+  function exportAnalyticsPdf() {
+    showToast('Preparing 1-page printable PDF bulletin…', 'info');
+    setTimeout(() => window.print(), 300);
+  }
+
+  async function exportAnalyticsPng() {
+    const dialog = $('analytics-modal-panel');
+    if (!dialog) return;
+    if (typeof window.html2canvas === 'undefined') {
+      showToast('Snapshot engine is still loading — retry in a second.', 'warn');
+      return;
+    }
+    showToast('Rendering 1-page white bulletin (2× retina)…', 'info');
+
+    const clone = dialog.cloneNode(true);
+    clone.classList.remove('modal', 'modal-analytics');
+    clone.classList.add('export-a4-snapshot');
+    const actions = clone.querySelector('.modal-actions');
+    if (actions) actions.remove();
+    const scope = clone.querySelector('.analytics-scope-toggle');
+    if (scope) scope.remove();
+    const footer = document.createElement('div');
+    footer.className = 'bulletin-footer';
+    const nowUtc = new Date().toISOString().replace('T', ' ').substring(0, 16) + ' UTC';
+    footer.innerHTML = `<span>CEMA · Canada / China Earthquake Monitoring &amp; Alert System</span><span>Official Seismic Bulletin · Generated ${nowUtc}</span>`;
+    clone.appendChild(footer);
+
+    const sandbox = document.createElement('div');
+    sandbox.id = 'snapshot-sandbox';
+    sandbox.style.cssText = 'position:fixed;left:0;top:0;width:1414px;height:1000px;margin:0;padding:0;overflow:hidden;background:#ffffff;z-index:-9999;pointer-events:none;';
+    sandbox.appendChild(clone);
+    document.body.appendChild(sandbox);
+
+    try {
+      const canvas = await window.html2canvas(clone, {
+        width: 1414, height: 1000, scale: 2, backgroundColor: '#ffffff',
+        useCORS: true, logging: false, windowWidth: 1414, windowHeight: 1000, x: 0, y: 0
+      });
+      const link = document.createElement('a');
+      link.download = `CEMA_Seismic_Bulletin_${new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19)}.png`;
+      link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('PNG bulletin exported.', 'success');
+    } catch (err) {
+      console.error('PNG export failed:', err);
+      showToast(`PNG export error: ${err.message}`, 'error');
+    } finally {
+      document.body.removeChild(sandbox);
+    }
   }
 
   /* ---------- Theme ---------- */
@@ -1255,6 +2034,27 @@ const sorted = getPlaybackData();
       if (e.target === $('table-modal')) closeModal('table-modal');
     });
 
+    /* Analytics deck: tabs, scope, exports */
+    document.querySelectorAll('.analytics-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.analytics-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.analytics-tab-pane').forEach(p => p.classList.remove('active'));
+        const pane = $(`tab-analytics-${btn.dataset.tab}`);
+        if (pane) pane.classList.add('active');
+        state.analyticsTab = btn.dataset.tab;
+      });
+    });
+    ['btn-scope-archive', 'btn-scope-view'].forEach(id => {
+      $(id).addEventListener('click', async () => {
+        state.analyticsScope = id === 'btn-scope-archive' ? 'archive' : 'view';
+        if (state.analyticsScope === 'archive') { await ensureAnalyticsData(); }
+        renderAnalytics();
+      });
+    });
+    $('btn-export-analytics-pdf').addEventListener('click', exportAnalyticsPdf);
+    $('btn-export-analytics-png').addEventListener('click', exportAnalyticsPng);
+
     /* Export */
     $('btn-export-csv').addEventListener('click', exportCSV);
 
@@ -1330,9 +2130,12 @@ const sorted = getPlaybackData();
     }
     refreshGeoLayers().catch(() => {});
 
-    /* Auto-refresh */
+    /* Pre-warm analytics catalog cache in the background */
+    setTimeout(() => fetchFullCatalogCache().catch(() => {}), 1200);
+
+    /* Auto-refresh — never clobber an active timeline playback */
     setInterval(() => {
-      fetchEarthquakes().catch(() => {});
+      if (!state.playing) fetchEarthquakes().catch(() => {});
       fetchStats().catch(() => {});
     }, REFRESH_MS);
 

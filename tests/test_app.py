@@ -14,6 +14,29 @@ def test_root_css():
     assert resp.status_code == 200
     assert resp.headers["content-type"].startswith("text/css")
 
+def test_analytics_deck_markup():
+    """The analytics deck ships its tab rail, panes and export hooks."""
+    resp = client.get("/")
+    html = resp.text
+    for token in (
+        "analytics-tabs-nav",
+        'data-tab="overview"', 'data-tab="time"', 'data-tab="energy"', 'data-tab="regions"',
+        "analytics-scope-toggle",
+        "tab-analytics-overview", "tab-analytics-time", "tab-analytics-energy", "tab-analytics-regions",
+        "btn-export-analytics-pdf", "btn-export-analytics-png",
+        "html2canvas",
+    ):
+        assert token in html, f"missing in served HTML: {token}"
+    # legacy single-view ids must be gone
+    for stale in ('id="mag-bars"', 'id="analytics-total"', 'id="analytics-canada-bar"'):
+        assert stale not in html, f"stale analytics id present: {stale}"
+
+def test_analytics_deck_css_hooks():
+    css = client.get("/css/style.css").text
+    for token in (".analytics-tab-pane", ".kpi-chip", ".chart-diurnal-bars",
+                  ".matrix-table", ".export-a4-snapshot", ".bulletin-footer", "@media print"):
+        assert token in css, f"missing rule: {token}"
+
 def test_info():
     resp = client.get("/api/v1/info")
     assert resp.status_code == 200
