@@ -484,7 +484,7 @@
         <div class="analytics-grid-regions">
           <div class="analytics-card card-regions-left">
             <div class="card-title-row">
-              <h4>Top 15 Seismogenic Provinces</h4>
+              <h4>Top 10 Seismogenic Provinces</h4>
               <span class="analytics-badge">Ranked Density</span>
             </div>
             <p class="card-desc">Ranked by event frequency and peak magnitude across the Canada and China catalogs, tagged by tectonic province.</p>
@@ -1354,14 +1354,28 @@ const sorted = getPlaybackData();
 
     if (sourceChart) {
       const top = Object.entries(sourceCounts).sort((a, b) => b[1].count - a[1].count).slice(0, 5);
-      sourceChart.innerHTML = top.map(([name, data]) => {
+      const rowsHtml = top.map(([name, data]) => {
         const share = Math.round((data.count / (quakes.length || 1)) * 100);
         return `
           <div class="source-row">
-            <div class="source-info"><span class="source-dot" style="background:${data.color}"></span><span class="source-name">${name}</span></div>
+            <div class="source-info"><span class="source-dot" style="background:${data.color}"></span><span class="source-name">${name} Live</span></div>
+            <div class="chart-bar-track" style="flex:1;margin:0 0.8rem;height:8px"><div class="chart-bar-fill" style="width:${share}%;--bar-color:${data.color}"></div></div>
             <span class="source-count">${data.count.toLocaleString()} <em>(${share}%)</em></span>
           </div>`;
       }).join('');
+      sourceChart.innerHTML = rowsHtml + `
+        <div class="stat-row" style="margin-top:0.4rem;padding-top:0.35rem;border-top:1px solid var(--border-soft)">
+          <span>🇨🇦 Canada Routing</span>
+          <strong>NRCan / USGS Feed</strong>
+        </div>
+        <div class="stat-row">
+          <span>🇨🇳 China Routing</span>
+          <strong>CENC / USGS Feed</strong>
+        </div>
+        <div class="stat-row">
+          <span>Spatial Dedup Filter</span>
+          <strong style="color:var(--accent)">≤ 25 km · ± 60 s active</strong>
+        </div>`;
     }
 
     if (healthSummary) {
@@ -1695,7 +1709,7 @@ const sorted = getPlaybackData();
     });
 
     if (topList) {
-      const sorted = Object.entries(regionMap).sort((a, b) => b[1].count - a[1].count).slice(0, 15);
+      const sorted = Object.entries(regionMap).sort((a, b) => b[1].count - a[1].count).slice(0, 10);
       const topMax = sorted[0] ? sorted[0][1].count : 1;
       topList.innerHTML = sorted.map(([rName, rData], idx) => {
         const pct = Math.round((rData.count / topMax) * 100);

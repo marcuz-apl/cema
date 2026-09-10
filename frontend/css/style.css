@@ -2063,15 +2063,15 @@ header {
 .analytics-kpi-ribbon {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-  gap: 0.7rem;
-  margin-bottom: 1rem;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
 }
 
 .kpi-chip {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  padding: 0.85rem 1rem;
+  padding: 0.6rem 0.85rem;
   background: var(--bg-glass);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -2114,6 +2114,34 @@ header {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(285px, 1fr));
   gap: 0.8rem;
+}
+
+.analytics-grid-overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 1fr);
+  gap: 0.85rem;
+  align-items: stretch;
+}
+
+.analytics-grid-overview .analytics-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.85rem 1.05rem;
+  min-height: 220px;
+}
+
+.analytics-grid-overview .card-title-row {
+  margin-bottom: 0.5rem;
+}
+
+.analytics-grid-overview .chart-bar-row {
+  margin-bottom: 0.2rem;
+}
+
+.analytics-grid-overview .stat-row {
+  padding: 0.35rem 0;
 }
 
 .analytics-grid-time-lower { margin-top: 0.8rem; }
@@ -2367,7 +2395,7 @@ header {
 
 .chart-bar-row {
   display: grid;
-  grid-template-columns: 74px 1fr 42px;
+  grid-template-columns: 105px 1fr 50px;
   align-items: center;
   gap: 0.7rem;
 }
@@ -2410,23 +2438,29 @@ header {
 .analytics-grid-energy {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
-  gap: 0.8rem;
-  align-items: start;
+  gap: 0.85rem;
+  align-items: stretch;
+}
+
+.card-energy-main {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.energy-curve-wrapper {
+  width: 100%;
+  height: auto;
+  min-height: 300px;
+  flex: 1;
 }
 
 .energy-side-col {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.85rem;
+  justify-content: space-between;
   min-width: 0;
-}
-
-.card-energy-main { display: flex; flex-direction: column; }
-
-.energy-curve-wrapper {
-  width: 100%;
-  height: 300px;
-  flex: 1;
 }
 
 .energy-benchmarks-list {
@@ -2513,29 +2547,40 @@ header {
 .analytics-grid-regions {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
-  gap: 0.8rem;
-  align-items: start;
+  gap: 0.85rem;
+  align-items: stretch;
+}
+
+.card-regions-left {
+  display: flex;
+  flex-direction: column;
 }
 
 .regions-right-col {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.85rem;
+  justify-content: space-between;
   min-width: 0;
 }
 
+.regions-right-col .analytics-card {
+  flex: 1;
+}
+
 .region-stats-extended {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 
 .region-row-ext {
   display: grid;
-  grid-template-columns: 30px 44px minmax(78px, 1.25fr) 1fr auto;
+  grid-template-columns: 28px 42px minmax(78px, 1.25fr) 1fr auto;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.34rem 0.25rem;
+  gap: 0.45rem;
+  padding: 0.22rem 0.25rem;
   border-radius: 6px;
   transition: background var(--dur-fast) var(--ease);
 }
@@ -2575,7 +2620,7 @@ header {
 }
 
 .region-bar-track-ext {
-  height: 8px;
+  height: 7px;
   background: var(--hover-bg);
   border-radius: 4px;
   overflow: hidden;
@@ -2606,19 +2651,22 @@ header {
 
 .tectonic-belts-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
-  gap: 0.45rem;
-  margin-top: 0.9rem;
-  padding-top: 0.75rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 0.65rem;
   border-top: 1px solid var(--border);
 }
 
 .belt-item {
-  padding: 0.5rem 0.6rem;
+  padding: 0.4rem 0.45rem;
   background: var(--hover-bg);
   border: 1px solid var(--border-soft);
   border-radius: 6px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .belt-tag {
@@ -2628,18 +2676,18 @@ header {
   width: fit-content;
   padding: 0.12rem 0.35rem;
   border-radius: 4px;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.25rem;
 }
 
 .belt-name {
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   font-weight: 700;
   color: var(--fg-dim);
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .belt-stat {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   color: var(--fg-faint);
   font-family: var(--font-mono);
   margin-top: 0.15rem;
@@ -2722,6 +2770,29 @@ header {
   padding: 14px 22px;
   overflow: hidden;
   color: #0f172a;
+}
+
+#snapshot-sandbox .export-a4-snapshot .analytics-grid-overview {
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 14px !important;
+}
+
+#snapshot-sandbox .export-a4-snapshot .analytics-grid-energy {
+  align-items: stretch !important;
+}
+
+#snapshot-sandbox .export-a4-snapshot .card-energy-main {
+  height: 100% !important;
+}
+
+#snapshot-sandbox .export-a4-snapshot .analytics-grid-regions {
+  grid-template-columns: 1.15fr 1fr !important;
+  gap: 14px !important;
+}
+
+#snapshot-sandbox .export-a4-snapshot .tectonic-belts-summary {
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 8px !important;
 }
 
 #snapshot-sandbox .export-a4-snapshot .analytics-card,
@@ -3261,9 +3332,13 @@ header {
     max-width: 100%;
   }
 
-  .analytics-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .analytics-grid,
+  .analytics-grid-overview {
+    grid-template-columns: 1fr;
     gap: 0.6rem;
+  }
+  .tectonic-belts-summary {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   }
 
   .analytics-grid-energy,
@@ -3458,6 +3533,29 @@ header {
     overflow: visible;
     color: #0f172a;
     background: #fff;
+  }
+
+  body:has(#analytics-modal.open) .analytics-grid-overview {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  body:has(#analytics-modal.open) .analytics-grid-energy {
+    align-items: stretch !important;
+  }
+
+  body:has(#analytics-modal.open) .card-energy-main {
+    height: 100% !important;
+  }
+
+  body:has(#analytics-modal.open) .analytics-grid-regions {
+    grid-template-columns: 1.15fr 1fr !important;
+    gap: 14px !important;
+  }
+
+  body:has(#analytics-modal.open) .tectonic-belts-summary {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 8px !important;
   }
 
   body:has(#analytics-modal.open) .analytics-card,

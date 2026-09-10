@@ -122,3 +122,47 @@ def test_no_uncaught_page_errors(page):
         page.click(f'.analytics-tab-btn[data-tab="{tab}"]')
     page.click("#analytics-modal-close")
     assert not errors
+
+
+def test_regions_renders_top_10(page):
+    _open_deck(page)
+    page.click('.analytics-tab-btn[data-tab="regions"]')
+    rows = page.query_selector_all("#analytics-top-regions-list .region-row-ext")
+    assert len(rows) == 10
+    assert "Top 10" in page.inner_text(".card-regions-left")
+
+
+def test_all_tabs_fit_single_page_without_scroll(page):
+    page.set_viewport_size({"width": 1440, "height": 900})
+    _open_deck(page)
+    for tab in TABS:
+        page.click(f'.analytics-tab-btn[data-tab="{tab}"]')
+        page.wait_for_timeout(250)
+        overflow = page.evaluate("""() => {
+            const body = document.querySelector('.analytics-modal-body');
+            return body.scrollHeight - body.clientHeight;
+        }""")
+        assert overflow <= 2, f"{tab} overflows by {overflow}px (should be <= 2px for zero-scroll 1-page fit)"
+
+
+def test_all_tabs_export_single_page_pdf(page):
+    _open_deck(page)
+    for tab in TABS:
+        page.click(f'.analytics-tab-btn[data-tab="{tab}"]')
+        page.wait_for_timeout(250)
+        pdf = page.pdf(format="A4", landscape=True, print_background=True)
+        pages = len(re.findall(rb"/Type\s*/Page[^s]", pdf))
+        assert pages == 1, f"{tab} generated {pages} PDF pages (expected exactly 1)"
+
+
+def test_energy_tab_cards_equal_height(page):
+    page.set_viewport_size({"width": 1440, "height": 900})
+    _open_deck(page)
+    page.click('.analytics-tab-btn[data-tab="energy"]')
+    page.wait_for_timeout(300)
+    diff = page.evaluate("""() => {
+        const left = document.querySelector('.card-energy-main');
+        const right = document.querySelector('.energy-side-col');
+        return Math.abs(left.getBoundingClientRect().height - right.getBoundingClientRect().height);
+    }""")
+    assert diff <= 1, f"Energy tab left card and right side heights differ by {diff}px (expected equal)"
