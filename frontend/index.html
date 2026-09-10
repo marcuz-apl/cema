@@ -62,8 +62,14 @@
 
   <!-- Right: action dock -->
   <div class="header-right">
-    <button class="icon-btn desktop-only" id="btn-sort" data-tip="Sort feed" aria-label="Sort events">
-      <svg viewBox="0 0 24 24"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 4v16M17 4l3 3M17 4l-3 3"/></svg>
+    <button class="icon-btn desktop-only" id="btn-sort" data-tip="Audio On/Off" aria-label="Toggle audio signal">
+      <span id="audio-icon">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+      </span>
     </button>
     <button class="icon-btn" id="btn-analytics" data-tip="Analytics (A)" aria-label="Open analytics">
       <svg viewBox="0 0 24 24"><path d="M4 19h16M7 15l3-3 3 3 5-6"/><path d="M4 5v14"/></svg>
@@ -125,15 +131,15 @@
       </div>
 
       <div class="pill-select" id="time-presets" aria-label="Time range">
-        <button class="pill active" data-days="0">All-Time</button>
+        <button class="pill" data-days="0">All-Time</button>
         <button class="pill" data-days="365">1Y</button>
-        <button class="pill" data-days="30">30D</button>
+        <button class="pill active" data-days="30">30D</button>
         <button class="pill" data-days="7">7D</button>
         <button class="pill" data-days="1">24H</button>
       </div>
 
       <div class="mag-slider-wrap" aria-label="Magnitude filter">
-        <span class="slider-label">Mag ≥</span>
+        <span class="slider-label">MAG</span>
         <input type="range" id="mag-slider" min="0" max="8" step="0.1" value="0">
         <span class="mag-slider-value" id="mag-slider-value">0.0</span>
       </div>
@@ -230,7 +236,7 @@
         <option value="1">1×</option>
         <option value="2">2×</option>
         <option value="4">4×</option>
-        <option value="8">8×</option>
+        <option value="8" selected>8×</option>
       </select>
     </div>
   </main>
@@ -363,7 +369,7 @@
   /* ---------- State ---------- */
   const state = {
     region: 'canada',
-    days: 0,
+    days: 30,
     minMag: 0,
     search: '',
     theme: 'dark',
@@ -373,7 +379,8 @@
     tableSort: { key: 'event_time_utc', dir: 'desc' },
     playing: false,
     playback: { idx: 0, speed: 1 },
-    timeRange: []
+    timeRange: [],
+    audioEnabled: false
   };
 
   /* ---------- DOM refs ---------- */
@@ -438,7 +445,7 @@
     faults: { color: '#f87171', weight: 1.4, opacity: 0.85 },
     aoi: { color: '#38bdf8', weight: 2.4, opacity: 0.95, fillColor: '#38bdf8', fillOpacity: 0.08 }
   };
-  const layerToggles = { tectonic: true, provinces: true, aoi: false };
+  const layerToggles = { tectonic: false, provinces: true, aoi: false };
   const LAYER_FILE = { tectonic: 'faults', provinces: 'provinces', aoi: 'aoi' };
   const layerCache = {};
   const aoiGeom = [];
@@ -551,6 +558,7 @@
     state.currentData = data.items || [];
     state.timeRange = state.currentData.map(e => e.event_time_utc).filter(Boolean);
     if (state.timeRange.length > 1) state.timeRange.sort();
+    state.playback.idx = 0;
     renderFeed();
     renderMarkers();
     updateMagReadout();
@@ -634,7 +642,7 @@
         <div class="event-card" data-lat="${e.latitude}" data-lon="${e.longitude}" style="--mag-color:${color}" tabindex="0" role="button" aria-label="M${e.magnitude.toFixed(1)} ${e.region} ${dateStr}">
           <span class="mag-pill" style="--mag-color:${color}">${e.magnitude.toFixed(1)}</span>
           <div class="event-card-main">
-            <div class="event-card-region"><span class="flag">${flag}</span> ${e.region}</div>
+            <div class="event-card-region"><span class="flag">${flag}</span> ${e.province ? e.province + ' · ' : ''}${e.region.charAt(0).toUpperCase() + e.region.slice(1)}</div>
             <div class="event-card-mag">M${e.magnitude.toFixed(1)}</div>
             <div class="event-card-meta">
               <span class="event-card-time">${dateStr}<span class="sep"> · </span>${timeStr}</span>
@@ -691,8 +699,27 @@
   /* ---------- Timeline ---------- */
   function updateTimelineLabels() {
     const t = state.timeRange;
-    $('tl-date-start').textContent = t.length ? new Date(t[0]).toLocaleDateString() : '—';
-    $('tl-date-end').textContent = t.length ? new Date(t[t.length - 1]).toLocaleDateString() : '—';
+    let startStr, endStr;
+    if (state.days > 0 && t.length) {
+      const end = new Date();
+      const start = new Date(end.getTime() - state.days * 86400000);
+      startStr = start.toLocaleDateString();
+      endStr = end.toLocaleDateString();
+    } else if (t.length) {
+      if (state.days === 0) {
+        // All-Time: show full historical DB span (2020-01-02 → now)
+        startStr = new Date('2020-01-02').toLocaleDateString();
+        endStr = new Date().toLocaleDateString();
+      } else {
+        startStr = new Date(t[0]).toLocaleDateString();
+        endStr = new Date(t[t.length - 1]).toLocaleDateString();
+      }
+    } else {
+      startStr = '—';
+      endStr = '—';
+    }
+    $('tl-date-start').textContent = startStr;
+    $('tl-date-end').textContent = endStr;
     if (!t.length) {
       $('tl-date').textContent = '—';
       $('tl-scrubber').max = 0;
@@ -1120,6 +1147,19 @@
     /* Layers */
     ['layer-tectonic', 'layer-provinces', 'layer-aoi'].forEach(id => {
       $(id).addEventListener('change', e => toggleLayer(id.replace('layer-', ''), e.target.checked));
+    });
+
+    /* Audio toggle */
+    $('btn-sort').addEventListener('click', () => {
+      state.audioEnabled = !state.audioEnabled;
+      const icon = $('audio-icon');
+      if (icon) {
+        icon.innerHTML = state.audioEnabled
+          ? `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>`
+          : `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`;
+      }
+      $('btn-sort').classList.toggle('active', state.audioEnabled);
+      showToast(state.audioEnabled ? '🔊 Audio ON' : '🔇 Audio Muted', 'info');
     });
 
     /* Timeline */

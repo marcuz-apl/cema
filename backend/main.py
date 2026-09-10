@@ -19,7 +19,7 @@ def init_db():
         if not os.path.exists(path):
             conn = sqlite3.connect(path)
             conn.execute("PRAGMA journal_mode=WAL;")
-            conn.execute("CREATE TABLE IF NOT EXISTS earthquakes (id INTEGER PRIMARY KEY AUTOINCREMENT, region TEXT, event_time_utc TEXT, latitude REAL, longitude REAL, depth_km REAL, magnitude REAL, source TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)")
+            conn.execute("CREATE TABLE IF NOT EXISTS earthquakes (id INTEGER PRIMARY KEY AUTOINCREMENT, region TEXT, province TEXT, event_time_utc TEXT, latitude REAL, longitude REAL, depth_km REAL, magnitude REAL, source TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_time ON earthquakes(event_time_utc)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_mag ON earthquakes(magnitude)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_lat_lon ON earthquakes(latitude, longitude)")
@@ -57,6 +57,7 @@ app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 class Earthquake(BaseModel):
     id: int
     region: str
+    province: Optional[str]
     event_time_utc: str
     latitude: float
     longitude: float
