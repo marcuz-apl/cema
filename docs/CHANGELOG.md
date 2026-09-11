@@ -5,6 +5,14 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260911v] - 2026-09-11
+
+### Changed
+- **Default Collapsed State for LAYERS and MAG**: Both `LAYERS` controls and `MAG` legend widgets are now collapsed by default on initial page load (`collapsed` class and `aria-expanded="false"`), keeping the bottom HUD clean and providing an unobstructed view of the cartography. Tapping either pill instantly expands the respective control panel.
+- **Mobile-Aware Corner Snapping**: Updated `snapWidgetToCorner` to clear inline overrides on mobile (`<= 768px`) ensuring CSS mobile responsive positioning rules remain strictly enforced.
+
+---
+
 ## [v0.5.0+260911u] - 2026-09-11
 
 ### Changed

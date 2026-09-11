@@ -3967,6 +3967,29 @@ header {
     height: 8px;
   }
 
+  /* Collapsed mobile states for bottom widgets */
+  .layer-controls.collapsed {
+    bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    left: 0.35rem !important;
+    min-width: auto;
+    width: auto;
+  }
+
+  .layer-controls.collapsed .layer-controls-header {
+    margin-bottom: 0;
+  }
+
+  .map-legend.collapsed {
+    bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    right: 0.35rem !important;
+    min-width: auto;
+    width: auto;
+  }
+
+  .map-legend.collapsed .map-legend-header {
+    margin-bottom: 0;
+  }
+
   /* Layer controls: landed on very bottom of screen, smaller font size */
   .layer-controls {
     bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
