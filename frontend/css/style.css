@@ -3790,13 +3790,6 @@ header {
     white-space: nowrap;
   }
 
-  .pill-full {
-    display: none !important;
-  }
-
-  .pill-short {
-    display: inline !important;
-  }
 
   /* Slim & short MAG slider: fits in 1 single line with country selector */
   .mag-slider-wrap {

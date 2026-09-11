@@ -5,6 +5,16 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260911t] - 2026-09-11
+
+### Fixed
+- **Normal View 'All-Time' Text**: Fixed duplicate text display glitch where 'All-Time' rendered as 'All-TimeAll' by removing the redundant span and restoring standard text button rendering.
+
+### Changed
+- **Mobile Menu 9-Dot Bento Icon**: Updated top-right mobile action menu button (`#btn-mobile-menu`) to a 9-dot Bento Grid icon (`⠿` in 3x3 layout), providing clear visual distinction from the 6-dot drag handle grip (`⠿` in 2x3 layout) and aligning with the project's mobile bento specification.
+
+---
+
 ## [v0.5.0+260911s] - 2026-09-11
 
 ### Changed
