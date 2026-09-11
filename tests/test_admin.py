@@ -228,3 +228,21 @@ def test_admin_purge_range_endpoint():
     }
     rev_resp = client.post("/api/admin/db/purge-range", json=reversed_payload, headers=AUTH)
     assert rev_resp.status_code == 400
+
+def test_admin_poller_status_and_toggle():
+    # 1. Check poller status endpoint
+    resp = client.get("/api/admin/poller/status", headers=AUTH)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "enabled" in data
+    assert data["interval_sec"] == 180
+
+    # 2. Toggle pause poller
+    t_resp = client.post("/api/admin/poller/toggle?enable=false", headers=AUTH)
+    assert t_resp.status_code == 200
+    assert t_resp.json()["enabled"] is False
+
+    # 3. Toggle re-enable poller
+    t_resp2 = client.post("/api/admin/poller/toggle?enable=true", headers=AUTH)
+    assert t_resp2.status_code == 200
+    assert t_resp2.json()["enabled"] is True

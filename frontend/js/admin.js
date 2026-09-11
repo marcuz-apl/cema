@@ -183,6 +183,20 @@
       renderKPIs();
       renderDensity();
       $('#eventsTotal').textContent = `${st.database.total_records.toLocaleString()} records · dual catalog`;
+      if ($('#pollerBadge') && st.sync_state && st.sync_state.auto_poller) {
+        const p = st.sync_state.auto_poller;
+        if (!p.enabled) {
+          $('#pollerBadge').textContent = '○ CRON 3m: PAUSED';
+          $('#pollerBadge').style.color = '#e74c3c';
+        } else if (p.last_run) {
+          const tStr = p.last_run.slice(11, 19);
+          $('#pollerBadge').textContent = `● CRON 3m: ACTIVE (last ${tStr}Z · +${p.last_new_events || 0})`;
+          $('#pollerBadge').style.color = '#2ecc71';
+        } else {
+          $('#pollerBadge').textContent = '● CRON 3m: ARMED (180s)';
+          $('#pollerBadge').style.color = '#2ecc71';
+        }
+      }
       renderBackfillStub(st.backfill_state, st.sync_state);
       if (st.backfill_state && st.backfill_state.is_running && !state.bfPoll) {
         startBackfillPoll();

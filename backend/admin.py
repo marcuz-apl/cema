@@ -122,6 +122,13 @@ SYNC_STATE = {
     "is_running": False,
     "last": None,
     "result": {},
+    "auto_poller": {
+        "enabled": True,
+        "interval_sec": 180,
+        "last_run": None,
+        "total_runs": 0,
+        "last_new_events": 0,
+    },
 }
 
 
@@ -522,7 +529,7 @@ def _run_live_sync_sync(regions):
         regions=regions,
         start=start,
         end=end,
-        min_mag=2.0,
+        min_mag=3.0,
         chunk_days=7,
         replace=False,
         on_progress=on_progress,
@@ -659,6 +666,34 @@ async def get_admin_dashboard_status(_: bool = Depends(verify_admin_key)):
 # ---------------------------------------------------------------
 # On-demand sync
 # ---------------------------------------------------------------
+@router.get("/poller/status")
+async def admin_poller_status(_: bool = Depends(verify_admin_key)):
+    with _LOCK:
+        return dict(SYNC_STATE.get("auto_poller", {}))
+
+
+@router.post("/poller/toggle")
+async def admin_toggle_poller(
+    enable: Optional[bool] = None,
+    _: bool = Depends(verify_admin_key),
+):
+    with _LOCK:
+        poller = SYNC_STATE.setdefault("auto_poller", {
+            "enabled": True,
+            "interval_sec": 180,
+            "last_run": None,
+            "total_runs": 0,
+            "last_new_events": 0,
+        })
+        if enable is not None:
+            poller["enabled"] = enable
+        else:
+            poller["enabled"] = not poller.get("enabled", True)
+        current = poller["enabled"]
+    _log(f"auto-poller {'enabled' if current else 'paused'} (interval: 180s)")
+    return {"status": "ok", "enabled": current, "interval_sec": 180}
+
+
 @router.post("/sync/{provider}")
 async def admin_sync_provider(provider: str, _: bool = Depends(verify_admin_key)):
     with _LOCK:

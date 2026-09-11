@@ -4,7 +4,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 from contextlib import asynccontextmanager
-import sqlite3, os, json, time
+import sqlite3, os, json, time, asyncio
+from datetime import datetime, date, timedelta, timezone
+from .ingestion import backfill
 
 from . import admin as admin_module
 
@@ -47,10 +49,67 @@ def init_db():
                     conn.commit()
                     conn.close()
 
+
+async def background_poller():
+    """Background cron polling authoritative seismic data sources every 180 seconds (3 minutes)."""
+    # Initial startup delay so DB initialization and FastAPI boot finish cleanly
+    await asyncio.sleep(6)
+    while True:
+        try:
+            # Check if auto-poller is enabled
+            with admin_module._LOCK:
+                poller_info = admin_module.SYNC_STATE.setdefault("auto_poller", {
+                    "enabled": True,
+                    "interval_sec": 180,
+                    "last_run": None,
+                    "total_runs": 0,
+                    "last_new_events": 0,
+                })
+                enabled = poller_info.get("enabled", True)
+                busy = admin_module.BACKFILL_STATE.get("is_running") or admin_module.SYNC_STATE.get("is_running")
+
+            if enabled and not busy:
+                def _do_poll():
+                    start = date.today() - timedelta(days=2)
+                    end = date.today()
+                    return backfill.run_backfill_job(
+                        regions=list(backfill.REGIONS),
+                        start=start,
+                        end=end,
+                        min_mag=3.0,
+                        chunk_days=2,
+                        replace=False,
+                        on_log=lambda m: admin_module._log(f"[cron 3m] {m}"),
+                    )
+
+                results = await asyncio.to_thread(_do_poll)
+                total_new = sum(r.get("events", 0) for r in results.values() if isinstance(r, dict))
+                with admin_module._LOCK:
+                    p = admin_module.SYNC_STATE.setdefault("auto_poller", {})
+                    p["last_run"] = datetime.now(timezone.utc).isoformat()
+                    p["total_runs"] = p.get("total_runs", 0) + 1
+                    p["last_new_events"] = total_new
+                    admin_module._log(f"[cron 3m] sync complete: {total_new} new M≥3.0 events added across catalogs")
+        except asyncio.CancelledError:
+            break
+        except Exception as exc:
+            admin_module._log(f"[cron 3m] sync error: {exc}")
+
+        # Sleep for the 3-minute interval (180s)
+        await asyncio.sleep(180)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    yield
+    poller_task = asyncio.create_task(background_poller())
+    try:
+        yield
+    finally:
+        poller_task.cancel()
+        try:
+            await poller_task
+        except asyncio.CancelledError:
+            pass
 
 app = FastAPI(title="CEMA API", version="0.5.0", lifespan=lifespan)
 
