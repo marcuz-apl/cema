@@ -75,18 +75,25 @@
       </div>
       <div class="bf-controls">
         <div class="presets">
-          <button class="chip-btn active" data-range="2023">Y2023</button>
+          <button class="chip-btn" data-range="2000-now">2000→Today</button>
+          <button class="chip-btn" data-range="2020-now">2020→Today</button>
           <button class="chip-btn" data-range="2024">Y2024</button>
           <button class="chip-btn" data-range="2025">Y2025</button>
-          <button class="chip-btn" data-range="full">Full 2020→Today</button>
+          <button class="chip-btn active" data-range="2026">Y2026</button>
+          <div class="chip-select-wrap">
+            <label for="bfYearSelect">YEAR:</label>
+            <select id="bfYearSelect" class="chip-select" aria-label="Select any year to backfill">
+              <option value="" disabled selected>Any Year…</option>
+            </select>
+          </div>
         </div>
         <div class="field">
           <label>START</label>
-          <input type="date" id="bfStart">
+          <input type="date" id="bfStart" min="1970-01-01">
         </div>
         <div class="field">
           <label>END</label>
-          <input type="date" id="bfEnd">
+          <input type="date" id="bfEnd" min="1970-01-01">
         </div>
         <div class="field">
           <label>MAG FLOOR</label>
@@ -105,6 +112,7 @@
             <option>90</option>
             <option>120</option>
             <option>180</option>
+            <option value="365">365 (1 Year)</option>
           </select>
         </div>
         <div class="field">

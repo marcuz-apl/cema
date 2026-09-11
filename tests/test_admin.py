@@ -162,3 +162,24 @@ def test_admin_deduplicate_all():
     assert "canada" in data["deduplicate"]
     assert "china" in data["deduplicate"]
     assert isinstance(data["deduplicate"]["canada"]["duplicate_pairs"], int)
+
+def test_admin_backfill_year_2000_request_validation():
+    # Verify year 2000 backfill request payload validates and accepts chunk_days=365
+    payload = {
+        "start_date": "2000-01-01",
+        "end_date": "2000-12-31",
+        "min_mag": 3.0,
+        "chunk_days": 365,
+        "mode": "merge",
+        "regions": "canada",
+        "source": "usgs",
+    }
+    # Reset engine first to ensure idle state
+    client.post("/api/admin/backfill/reset", headers=AUTH)
+    resp = client.post("/api/admin/backfill", json=payload, headers=AUTH)
+    assert resp.status_code in (200, 400)
+    if resp.status_code == 200:
+        data = resp.json()
+        assert data["status"] in ("started", "busy")
+        # Cleanly reset backfill engine back to idle
+        client.post("/api/admin/backfill/reset", headers=AUTH)

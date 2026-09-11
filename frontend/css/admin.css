@@ -410,3 +410,33 @@ html[data-theme='light'] #purgeFloor option {
   .banner-command { flex-direction: column; align-items: stretch; }
   .bf-controls { flex-direction: column; align-items: stretch; }
 }
+.chip-select-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(var(--bg-glass-rgb), 0.4);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 2px 8px 2px 10px;
+}
+.chip-select-wrap label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text-faint);
+  font-weight: 700;
+}
+.chip-select {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  padding: 4px 2px;
+}
+.chip-select option {
+  background: var(--bg-card);
+  color: var(--text);
+}

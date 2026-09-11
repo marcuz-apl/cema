@@ -512,7 +512,7 @@ class BackfillRequest(BaseModel):
     start_date: str
     end_date: str
     min_mag: float = Field(ge=3.0, le=10.0, default=3.0)
-    chunk_days: int = Field(ge=7, le=180, default=60)
+    chunk_days: int = Field(ge=7, le=365, default=60)
     regions: str = "all"
     mode: str = "backfill"  # backfill | merge
     source: str = "usgs"  # usgs | nrcan | cenc | auto

@@ -192,16 +192,44 @@
   }
 
   /* ── backfill engine ───────────────────────── */
+  function populateYearSelect() {
+    const sel = $('#bfYearSelect');
+    if (!sel) return;
+    const currentYear = new Date().getFullYear();
+    let opts = '<option value="" disabled selected>Any Year…</option>';
+    // Populate all years from current year down to 1970
+    for (let y = currentYear; y >= 1970; y--) {
+      const isSpecial = y === 2000 ? ' ⭐ (Y2000)' : '';
+      opts += `<option value="${y}">Y${y}${isSpecial}</option>`;
+    }
+    sel.innerHTML = opts;
+    sel.addEventListener('change', () => {
+      if (sel.value) {
+        setPreset(sel.value);
+      }
+    });
+  }
+
   function setPreset(range) {
     $$('.chip-btn').forEach((b) => b.classList.toggle('active', b.dataset.range === range));
     const today = new Date();
     const iso = (d) => d.toISOString().slice(0, 10);
-    if (range === 'full') {
+    if (range === '2000-now' || range === 'all-time') {
+      $('#bfStart').value = '2000-01-01';
+      $('#bfEnd').value = iso(today);
+    } else if (range === '2020-now' || range === 'full') {
       $('#bfStart').value = '2020-01-01';
       $('#bfEnd').value = iso(today);
     } else {
-      $('#bfStart').value = `${range}-01-01`;
-      $('#bfEnd').value = iso(new Date(`${range}-12-31`));
+      const year = parseInt(range, 10);
+      if (!isNaN(year) && year >= 1900 && year <= 2100) {
+        $('#bfStart').value = `${year}-01-01`;
+        if (year === today.getFullYear()) {
+          $('#bfEnd').value = iso(today);
+        } else {
+          $('#bfEnd').value = `${year}-12-31`;
+        }
+      }
     }
   }
 
@@ -531,6 +559,16 @@
   $('#syncAllBtn').addEventListener('click', syncAll);
 
   $$('.chip-btn').forEach((b) => b.addEventListener('click', () => setPreset(b.dataset.range)));
+  populateYearSelect();
+  ['bfStart', 'bfEnd'].forEach((id) => {
+    const el = $('#' + id);
+    if (el) {
+      el.addEventListener('input', () => {
+        // Clear active preset buttons when manual date is typed
+        $$('.chip-btn').forEach((b) => b.classList.remove('active'));
+      });
+    }
+  });
   $('#bfLaunch').addEventListener('click', launchBackfill);
   if ($('#bfResetBtn')) {
     $('#bfResetBtn').addEventListener('click', async () => {
@@ -617,6 +655,6 @@
 
   /* init */
   applyTheme(localStorage.getItem(THEME_STORE) || 'dark');
-  setPreset('2023');
+  setPreset('2026');
   tryResume();
 })();
