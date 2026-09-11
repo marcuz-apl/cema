@@ -142,6 +142,7 @@
 
       <div class="pill-select" id="time-presets" aria-label="Time range">
         <button class="pill" data-days="0">All-Time</button>
+        <button class="pill" data-days="2020" data-start="2020-01-01">2020-Now</button>
         <button class="pill" data-days="365">1Y</button>
         <button class="pill active" data-days="30">30D</button>
         <button class="pill" data-days="7">7D</button>
@@ -558,6 +559,7 @@
   const state = {
     region: 'canada',
     days: 30,
+    startDate: null,
     minMag: 3.0,
     search: '',
     theme: 'dark',
@@ -867,7 +869,9 @@
   async function fetchEarthquakes() {
     stopPlayback();
     const params = { region: state.region, min_mag: state.minMag };
-    if (state.days > 0) {
+    if (state.startDate) {
+      params.start_date = state.startDate;
+    } else if (state.days > 0) {
       const end = new Date();
       const start = new Date(end.getTime() - state.days * 86400000);
       params.start_date = start.toISOString().split('T')[0];
@@ -2352,7 +2356,13 @@ const sorted = getPlaybackData();
       if (!pill) return;
       document.querySelectorAll('#time-presets .pill').forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
-      state.days = parseInt(pill.dataset.days, 10);
+      if (pill.dataset.start) {
+        state.startDate = pill.dataset.start;
+        state.days = -1;
+      } else {
+        state.startDate = null;
+        state.days = parseInt(pill.dataset.days, 10);
+      }
       fetchEarthquakes();
     });
 

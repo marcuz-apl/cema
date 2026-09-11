@@ -98,7 +98,7 @@ def verify_admin_key(
 # ---------------------------------------------------------------
 # Global job state (backfill / sync) — guarded by a lock
 # ---------------------------------------------------------------
-_LOCK = threading.Lock()
+_LOCK = threading.RLock()
 BACKFILL_STATE = {
     "is_running": False,
     "status": "idle",
@@ -388,7 +388,7 @@ def purge_date_range(start_date: str, end_date: str, regions: str = "all"):
 
 
 _HEALTH_CACHE = {"data": None, "ts": 0}
-_HEALTH_LOCK = threading.Lock()
+_HEALTH_LOCK = threading.RLock()
 
 
 def _usgs_health():
@@ -558,10 +558,10 @@ class PurgeRangeRequest(BaseModel):
 class BackfillRequest(BaseModel):
     start_date: str
     end_date: str
-    min_mag: float = Field(ge=3.0, le=10.0, default=3.0)
+    min_mag: float = Field(ge=2.0, le=10.0, default=3.0)
     chunk_days: int = Field(ge=7, le=365, default=60)
     regions: str = "all"
-    mode: str = "backfill"  # backfill | merge
+    mode: str = "merge"  # merge | backfill
     source: str = "usgs"  # usgs | nrcan | cenc | auto
 
 

@@ -328,6 +328,13 @@
       toast('Set a date range first.', 'err');
       return;
     }
+    if (payload.mode === 'backfill') {
+      const msg = '⚠️ DESTRUCTIVE ACTION WARNING:\n\n' +
+        'Backfill (Replace) will PERMANENTLY ERASE all existing catalog records for ' +
+        payload.regions.toUpperCase() + ' and replace them with only the selected date range (' +
+        payload.start_date + ' to ' + payload.end_date + ').\n\n' +
+        'Are you sure you want to proceed?\n(Click Cancel to switch to "Merge only new" to keep existing records).';
+    }
     try {
       await adminFetch('/api/admin/backfill', { method: 'POST', body: JSON.stringify(payload) });
       toast('Backfill queued — monitoring job…', 'info');
@@ -571,6 +578,21 @@
     localStorage.setItem(THEME_STORE, next);
   });
   $('#syncAllBtn').addEventListener('click', syncAll);
+
+  const pollerBadge = $('#pollerBadge');
+  if (pollerBadge) {
+    pollerBadge.style.cursor = 'pointer';
+    pollerBadge.title = 'Click to Toggle 3m Auto-Poller (Active / Paused)';
+    pollerBadge.addEventListener('click', async () => {
+      try {
+        const res = await adminFetch('/api/admin/poller/toggle', { method: 'POST' });
+        toast(`Auto-poller ${res.enabled ? 'activated (running every 3m)' : 'paused'}`, 'ok');
+        await refreshStatus(true);
+      } catch (err) {
+        toast('Failed to toggle poller: ' + err.message, 'err');
+      }
+    });
+  }
 
   $$('.chip-btn').forEach((b) => b.addEventListener('click', () => setPreset(b.dataset.range)));
   populateYearSelect();

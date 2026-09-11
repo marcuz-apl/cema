@@ -12,4 +12,6 @@ build/
 playwright/
 node_modules/
 venv
+.venv/
 .venv
+uvicorn.log

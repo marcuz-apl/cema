@@ -1,91 +1,153 @@
-# Product Requirements Document (PRD) — CEMA
+# CEMA Product Requirements Document (PRD)
 
-## 1. Executive Summary
+## 1. Executive Summary & Product Vision
 
-**CEMA** (Canada / China Earthquake Monitoring & Alert system) is a real-time seismic observatory platform monitoring earthquake activity across Canada and China. It delivers live telemetry, interactive geospatial cartography, historical catalogs, and multimodal playback for researchers, emergency responders, and the general public.
+**CEMA (Canada / China Earthquake Monitoring & Alert system)** is an open, high-performance, real-time seismic observatory platform designed specifically to monitor, visualize, and analyze earthquake events across **Canada** and **China**.
 
-## 2. Scope & Objectives
+Operating with independent regional persistence, real-time multi-agency ingestion, geospatial border enrichment, acoustic audio sonification, high-density analytics, and an administrative moderation console, CEMA provides a reliable, self-contained, and mobile-friendly seismic intelligence workstation.
 
-- Real-time ingestion from authoritative seismic agencies for Canada (Natural Resources Canada — NRCan, USGS for cross-border) and China (China Earthquake Networks Center — CENC, USGS).
-- Two independent SQLite database files (`data/eq-canada.db`, `data/eq-china.db`) in WAL mode, each with indexed event catalogs.
-- Interactive single-page web application (SPA) mimicking a modern observatory UI: 3-column desktop header (brand left, telemetry HUD center, action dock right), filter bar, zoom/theme toggler, floating magnitude bar, lower-left layers drawer, lower-center player bar.
-- Zero cloud dependency; fully self-contained with Docker Compose.
-- **Mobile-device friendly**: responsive mobile-first design with adaptive drawers, touch-optimized controls, and 60 fps interaction on phones and tablets.
-- No reference to external sister projects in any public-facing documentation.
+---
 
-## 3. Target Personas
+## 2. Core Tenets & Operating Principles
 
-- **Concerned Resident / Diaspora**: Needs quick magnitude, location, and time info on mobile.
-- **Disaster / Humanitarian Volunteer**: Needs historical context, aftershock frequency, and cluster maps.
-- **Geoscientist / Data Analyst**: Needs raw CSV/GeoJSON exports, depth vs magnitude scatter, and boundary overlays.
+1. **Strict Brand & Architecture Independence**: CEMA operates as an independent platform. All documentation, public APIs, and codebase comments reflect CEMA's distinct identity without external project references.
+2. **Three-Tier Database Topology**: Regional catalogs are partitioned into `data/eq-canada.db` and `data/eq-china.db`, backed by `data/cema-admin.db` for administrative audit logs.
+3. **Evidence Before Claim**: Verification through automated pytest and Playwright suites before marking milestones complete.
+4. **Mobile-First Ergonomics**: Dual-drawer mobile navigation (left seismic feed, right 9-dot bento control grid) ensuring 60 fps touch interactions on handheld viewports.
+5. **Zero External Cloud Keys**: Operates entirely on free, open cartography (CartoDB Dark Matter, OpenStreetMap) and localized GeoJSON boundaries without third-party API key blockers.
 
-## 4. Milestones / Phases
+---
 
-### Phase 1 — Foundation & Design Lock
-- Finalize PRD, AGENTS.md, README.md, and milestone definitions.
-- Confirm `alfazen-coding` bundle skills installed; set up version hooks.
-- Define Canada and China data source adapters and 2-DB schema.
+## 3. Target User Personas
 
-### Phase 2 — Data & Persistence
-- Build ingestion workers (NRCan / CENC / USGS adapters).
-- Create `data/eq-canada.db` and `data/eq-china.db` with WAL, B-Tree indexes on `origintimeutc`, `magnitude`, `latitude`, `longitude`.
-- Populate initial historical archives (minimum 2,000 verified records per region where available).
-- Implement deduplication (spatial distance ≤ 25 km, time window ± 60 s).
+| Persona | Core Needs | Primary Features Used |
+|---|---|---|
+| **Concerned Resident / Diaspora** | Rapid awareness of recent tremors in Canada or China with local time conversion | Mobile dual-drawer feed, live contextual MST/CST clocks, magnitude classification pills |
+| **Emergency & Humanitarian Responder** | Spatial clustering, aftershock frequency, and official bulletin generation | Leaflet Canvas map, timeline player with audio chirps, instant PNG bulletin generator |
+| **Seismologist / Data Analyst** | Gutenberg-Richter $b$-value estimation, depth vs. magnitude scatter, catalog exports | Single-page A4 landscape Analytics Deck, CSV & GeoJSON export, "Latest 1000" vs "All Time" data table |
+| **Observatory Operator / Admin** | Ingestion pipeline health, historical catalog backfilling, data deduplication, and catalog moderation | Passkey-authenticated Admin Console (`/admin`), multi-source backfill down to Year 2000, safe-guarded date purge tool |
 
-### Phase 3 — Backend & API
-- FastAPI service with REST endpoints:
-  - `GET /api/v1/earthquakes` (filterable by `region`, `min_mag`, `max_mag`, `start_date`, `end_date`, `bbox`, `limit`, `offset`)
-  - `GET /api/v1/earthquakes/stats`
-  - `GET /api/v1/live` (SSE for live push)
-  - `GET /api/v1/boundaries/tectonic` (GeoJSON)
-  - `GET /api/v1/boundaries/provinces` (GeoJSON)
-- Database access layer with multi-region query routing.
+---
 
-### Phase 4 — Frontend UI & Cartography
-- Vanilla ESM JavaScript + Leaflet Canvas mode.
-- Header: brand icon + "CEMA" (left); telemetry capsule (center: live indicator, total recorded, max quake, 24h count); action icons (audio, analytics, data table, full-screen, camera) (right).
-- Filter bar just below header (date window, magnitude range, region toggle, depth range).
-- Map: zoom in/out buttons; Dark Canvas / OpenStreetMap theme toggler.
-- Floating MAG bar (lower right); Layers bar (lower left); Player bar (lower center) with timeline replay.
-- Responsive mobile layout: left feed drawer + right 9-dot bento tools grid.
+## 4. Functional Specifications
 
-### Phase 5 — Integration, Quality & Release
-- End-to-End testing with Playwright (headless browser verification).
-- Docker Compose build and local validation.
-- Version tag `v0.1.0` (or `v1.0.0` if all milestones met).
-- Update CHANGELOG.md per `changelog-curator` skill rules.
+### 4.1 Data Ingestion & Deduplication Pipeline
+- **Multi-Agency Adapters**:
+  - Natural Resources Canada (NRCan) seismic bulletin polling.
+  - China Earthquake Networks Center (CENC) real-time feed polling.
+  - USGS Earthquake API filtered to Canada (~42°N–83°N, 168°W–52°W) and China (~18°N–54°N, 73°E–135°E) bounding boxes.
+- **Intelligent Deduplication**: Cross-agency event consolidation using Haversine distance threshold $\le 25\text{ km}$ and temporal window $\pm 60\text{ s}$.
+- **Magnitude Floor**: Standardized M 3.0 threshold across ingestion, backfilling, and user interfaces.
 
-## 5. Technical Architecture
+### 4.2 Spatial Enrichment & Sovereign Border Classification
+- **Country Assigner**: Exact polygon point-in-polygon matching against sovereign boundaries (`world_countries.geojson`).
+- **Administrative Codes**: 2-letter postal abbreviation mapping for all 13 Canadian provinces/territories and 50 US border states.
+- **Chinese Administrative Division**: Provincial and autonomous region attribution from static GeoJSON boundaries.
 
-- **Data Ingestion**: Async HTTPX workers polling NRCan, CENC, USGS feeds.
-- **Persistence**: SQLite3 (WAL) × 2 (`eq-canada.db`, `eq-china.db`).
-- **API**: FastAPI + Uvicorn.
-- **Frontend**: Vanilla ESM JS, HTML5, CSS Glassmorphism, Leaflet (Canvas mode).
-- **Mapping**: CartoDB Dark Matter / OpenStreetMap Standard basemaps; Canada provincial + tectonic boundary GeoJSON; China provincial + tectonic boundary GeoJSON.
-- **DevOps**: Docker, Docker Compose.
+### 4.3 Interactive Leaflet Canvas Cartography
+- Canvas-accelerated Leaflet layer handling thousands of historical events smoothly at 60 fps.
+- Toggle between CartoDB Dark Matter (low-light emergency mode) and OpenStreetMap Standard (geographic context).
+- Layer toggles for North American / Eurasian tectonic fault lines, provincial boundaries, and epicenter markers.
+- Magnitude legend with interactive filter chips (M3.0–4.5, M4.5–5.5, M5.5–6.5, M6.5–7.5, M≥7.5).
 
-## 6. Design Advice & Corrections
+### 4.4 Seismic Audio Sonification Engine
+- Synthetic acoustic synthesizer powered by the browser Web Audio API.
+- Converts magnitude dynamically into exponential frequency (Hz) and gain during timeline playback.
+- Synchronized auditory cueing for chronological scrub and historical event replay.
 
-- **Advice on 2 DB files**: Rather than one monolithic DB, splitting into `eq-canada.db` and `eq-china.db` keeps queries fast, supports independent maintenance, and allows future regional scaling. Both use identical schemas for portability.
-- **Advice on UI consistency**: Keep the 3-column desktop header identical in layout to the reference observatory pattern (balanced left brand, centered telemetry, right icon dock). Do not use iframe nesting; use a unified SPA with reactive state.
-- **Advice on mobile**: Implement adaptive dual-drawers (left seismic feed, right 9-dot bento grid) rather than collapsing everything into a hamburger menu, preserving quick access to map layers and analytics.
-- **Advice on audio / playback**: The player bar should support chronological replay across any selected temporal window with magnitude-scaled audio chirps. This improves accessibility and situational awareness.
+### 4.5 Single-Page A4 Landscape Analytics Deck
+- 4-quadrant layout tailored for single-view screens and A4 landscape PDF export:
+  1. Magnitude frequency histogram and classification distribution.
+  2. Focal depth scatter plot (shallow $\le 30\text{ km}$, intermediate, deep).
+  3. Gutenberg-Richter recurrence relation and $b$-value estimation.
+  4. Cumulative seismic energy accumulation ($E = 10^{4.8 + 1.5M}$) with equal-height cards.
 
-## 7. Non-Functional Requirements
+### 4.6 Comprehensive Data Table & Export Studio
+- Interactive paginated table with First/Last page navigation.
+- Scope toggler: "Latest 1000" events (rapid review) vs. "All Time" (full catalog).
+- One-click downloads:
+  - **GeoJSON**: Standardized geospatial FeatureCollection for GIS software (QGIS, ArcGIS).
+  - **CSV**: Spreadsheet-compatible dataset with all spatial and temporal attributes.
+  - **PNG Bulletin**: Formatted emergency bulletin image with aligned typography and epicenter details.
 
-- Load time < 2 s for initial map view (cached tiles, lightweight JSON endpoints).
-- 60 fps interaction on mobile and desktop.
-- Zero external cloud dependencies; fully offline-capable after build.
-- Responsive design: mobile-first with desktop enhancement.
+### 4.7 Operations & Admin Control Center (`/admin`)
+- **Authentication**: Client-side passkey modal verifying against `ADMIN_PASSWORD` (default: `cema2026admin`).
+- **Telemetry & Health**: Real-time status checks for USGS, NRCan, and CENC ingestion workers.
+- **Historical Backfill**: Multi-year catalog ingestion down to Year 2000 using 365-day chunking to avoid remote rate limits.
+- **Range Purge Tool**: Date/year range purge tool with historical presets (Year 2008 Wenchuan cluster, Years 2000–2003) and explicit confirmation warning modal.
+- **Deduplication Runner**: Manual in-place catalog deduplication and engine state resets.
+- **Operator.Log Terminal**: Live streaming operational terminal styled in dark and light syntax modes.
 
-## 8. Data Sources & Boundaries
+---
 
-### Canada
-- **Primary**: Natural Resources Canada (NRCan) — earthquake bulletins and seismic feed.
-- **Secondary / Fallback**: USGS (global feeds filtered to Canada bounding box).
-- **Geospatial Boundaries**: Canada provincial / territorial boundaries (GeoJSON); North American plate boundary segments.
+## 5. Non-Functional Requirements & Performance Budgets
 
-### China
-- **Primary**: China Earthquake Networks Center (CENC) — real-time and catalog feeds.
-- **Secondary / Fallback**: USGS (filtered to China bounding box).
-- **Geospatial Boundaries**: China provincial / autonomous region boundaries (GeoJSON); Eurasian / Indo-Australian plate boundary segments.
+| Metric | Target | Verification Method |
+|---|---|---|
+| **Initial Load Time** | < 2.0 s on 3G Fast network | Lighthouse / DevTools audit |
+| **Rendering Performance** | 60 fps smooth pan/zoom with 5,000+ markers | Leaflet Canvas mode verification |
+| **API Response Time** | < 50 ms for `/api/v1/earthquakes` with standard limits | Uvicorn benchmark & test suite |
+| **Database Concurrency** | Zero table-lock timeouts during concurrent ingestion & querying | SQLite WAL mode verification |
+| **Mobile Responsiveness** | Flawless view on 375px to 1920px+ viewports | Playwright mobile emulation |
+| **Offline Resilience** | Full UI functionality and local GeoJSON boundary rendering without Internet | Static asset audit |
+
+---
+
+## 6. System Architecture
+
+```
+                                  +-----------------------+
+                                  | Ingestion Sources     |
+                                  | NRCan | CENC | USGS   |
+                                  +-----------+-----------+
+                                              |
+                                              v
++---------------------------------------------------------------------+
+| CEMA Backend Service (FastAPI :4071)                                |
+|                                                                     |
+|  +--------------------+   +-------------------+   +---------------+  |
+|  | Ingestion Workers  |-->| Dedup Engine      |-->| Country       |  |
+|  | & Backfill Worker  |   | (<=25km, +-60s)   |   | Assigner      |  |
+|  +--------------------+   +-------------------+   +-------+-------+  |
+|                                                           |          |
+|  +--------------------------------------------------------+          |
+|  | Multi-Region Database Routing Layer                               |
+|  +-----------------+---------------------+------------------+        |
++--------------------|---------------------|------------------|--------+
+                     |                     |                  |
+                     v                     v                  v
+         +-----------------------+ +------------------+ +-------------+
+         | data/eq-canada.db     | | data/eq-china.db | | cema-admin  |
+         | (WAL, Spatial Indexes)| | (WAL, Indexes)   | | .db (Logs)  |
+         +-----------------------+ +------------------+ +-------------+
+                     ^                     ^
+                     +----------+----------+
+                                |
++-------------------------------+--------------------------------------+
+| CEMA Unified Frontend (Port 4071)                                    |
+|                                                                      |
+|  +---------------------------+   +--------------------------------+  |
+|  | Public Observatory SPA    |   | Operations & Admin Portal      |  |
+|  | - 3-Col Header & Clocks   |   | - Passkey Modal                |  |
+|  | - Leaflet Canvas Map      |   | - Telemetry & Ingestion Health |  |
+|  | - Floating HUD Controls   |   | - 365-Day Historical Backfill  |  |
+|  | - Audio Sonification      |   | - Safe Purge Tools             |  |
+|  | - A4 Analytics Deck       |   | - Live Operator.Log Stream     |  |
+|  | - Data Table & Exports    |   +--------------------------------+  |
+|  +---------------------------+                                       |
++----------------------------------------------------------------------+
+```
+
+---
+
+## 7. Milestone Progression Matrix
+
+- **Phase 1 — Foundation & Architecture Design** ✅ (v0.1.0)
+- **Phase 2 — Data Architecture & Persistent Catalogs** ✅ (v0.2.0)
+- **Phase 3 — Backend API & Real-Time SSE Service** ✅ (v0.3.0)
+- **Phase 4 — Frontend Cartography & Responsive SPA** ✅ (v0.4.0)
+- **Phase 5 — Quality Gates & Integration Harness** ✅ (v0.5.0)
+- **Phase 6 — Audio Sonification & Boundary Geospatial Enrichment** ✅ (v0.5.0+2609101 – v0.5.0+260911h)
+- **Phase 7 — Analytics Deck, Export Studio & Data Table** ✅ (v0.5.0+2609106 – v0.5.0+2609114)
+- **Phase 8 — Operations & Admin Console** ✅ (v0.5.0+2609116 – v0.5.0+260911l)
+- **Phase 9 — Hardening, Containerization & Production Readiness** ✅ (v0.5.0+260911m)

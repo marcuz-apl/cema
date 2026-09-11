@@ -5,6 +5,7 @@
   --accent-gold-rgb: 234, 179, 8;
   --bg-dark: #07090e;
   --bg-surface: #0d121f;
+  --bg-card: #111728;
   --bg-glass: rgba(13, 19, 31, 0.72);
   --bg-glass-rgb: 13, 19, 31;
   --line: rgba(148, 163, 184, 0.16);
@@ -23,6 +24,7 @@
 html[data-theme='light'] {
   --bg-dark: #f2f3f7;
   --bg-surface: #ffffff;
+  --bg-card: #ffffff;
   --bg-glass: rgba(255, 255, 255, 0.82);
   --bg-glass-rgb: 255, 255, 255;
   --line: rgba(15, 23, 42, 0.12);
@@ -230,6 +232,15 @@ html[data-theme='light'] .brand-mark { color: var(--bg-surface); }
 .chip-btn.active { background: rgba(var(--accent-rgb), 0.14); border-color: rgba(var(--accent-rgb), 0.5); color: var(--accent); }
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; color: var(--text-faint); }
+select option {
+  background-color: #0d121f;
+  color: #e6eaf2;
+}
+html[data-theme='light'] select option {
+  background-color: #ffffff;
+  color: #111827;
+}
+
 .field input, .field select, .mod-filters select, .mod-filters input, .reg-grid input, .reg-grid select {
   padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line-strong);
   background: rgba(var(--bg-glass-rgb), 0.55); color: var(--text); font-family: var(--font-mono); font-size: 12px;
@@ -414,16 +425,22 @@ html[data-theme='light'] #purgeFloor option {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(var(--bg-glass-rgb), 0.4);
+  background: var(--bg-surface);
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   padding: 2px 8px 2px 10px;
+  transition: border-color 0.16s, box-shadow 0.16s;
+}
+.chip-select-wrap:hover,
+.chip-select-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
 }
 .chip-select-wrap label {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 1.5px;
-  color: var(--text-faint);
+  color: var(--accent-gold);
   font-weight: 700;
 }
 .chip-select {
@@ -434,11 +451,39 @@ html[data-theme='light'] #purgeFloor option {
   color: var(--text);
   cursor: pointer;
   outline: none;
-  padding: 4px 2px;
+  padding: 4px 4px;
 }
 .chip-select option {
-  background: var(--bg-card);
-  color: var(--text);
+  background-color: #0d121f;
+  color: #e6eaf2;
+}
+.chip-select option:disabled {
+  color: #64748b;
+}
+html[data-theme='light'] .chip-select-wrap {
+  background: #ffffff;
+}
+html[data-theme='light'] .chip-select {
+  background: transparent;
+  color: #111827;
+}
+html[data-theme='light'] .chip-select option {
+  background-color: #ffffff;
+  color: #111827;
+}
+html[data-theme='light'] .chip-select option:disabled {
+  color: #94a3b8;
+}
+
+#pollerBadge {
+  cursor: pointer;
+  transition: all 0.16s ease;
+  user-select: none;
+}
+#pollerBadge:hover {
+  filter: brightness(1.25);
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.35);
+  transform: translateY(-1px);
 }
 
 /* Purge warning callout */

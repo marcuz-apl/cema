@@ -73,7 +73,7 @@ def fetch_page(rows, region, start, end, min_mag=MIN_MAG):
     req = urllib.request.Request(
         url, headers={"User-Agent": UA, "Accept": "application/json"}
     )
-    with urllib.request.urlopen(req, timeout=120) as resp:
+    with urllib.request.urlopen(req, timeout=15) as resp:
         payload = json.load(resp)
     features = payload.get("features", [])
     for f in features:
@@ -188,7 +188,7 @@ def run_backfill_job(
     end=END,
     min_mag=MIN_MAG,
     chunk_days=60,
-    replace=True,
+    replace=False,
     source="usgs",
     on_progress=None,
     on_log=None,

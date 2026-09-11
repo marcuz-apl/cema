@@ -2248,7 +2248,7 @@ header {
 }
 
 .analytics-grid-time-upper { flex: 1.15; min-height: 0; }
-.analytics-grid-time-lower { flex: 1; min-height: 0; margin-top: 0.8rem; }
+.analytics-grid-time-lower { grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); flex: 1; min-height: 0; margin-top: 0.8rem; }
 
 .analytics-card {
   padding: 1rem 1.1rem;

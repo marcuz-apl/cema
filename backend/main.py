@@ -65,7 +65,7 @@ async def background_poller():
                     "total_runs": 0,
                     "last_new_events": 0,
                 })
-                enabled = poller_info.get("enabled", True)
+                enabled = poller_info.get("enabled", False)
                 busy = admin_module.BACKFILL_STATE.get("is_running") or admin_module.SYNC_STATE.get("is_running")
 
             if enabled and not busy:
@@ -89,7 +89,7 @@ async def background_poller():
                     p["last_run"] = datetime.now(timezone.utc).isoformat()
                     p["total_runs"] = p.get("total_runs", 0) + 1
                     p["last_new_events"] = total_new
-                    admin_module._log(f"[cron 3m] sync complete: {total_new} new M≥3.0 events added across catalogs")
+                admin_module._log(f"[cron 3m] sync complete: {total_new} new M≥3.0 events added across catalogs")
         except asyncio.CancelledError:
             break
         except Exception as exc:
@@ -105,11 +105,12 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
-        poller_task.cancel()
-        try:
-            await poller_task
-        except asyncio.CancelledError:
-            pass
+        if poller_task:
+            poller_task.cancel()
+            try:
+                await poller_task
+            except asyncio.CancelledError:
+                pass
 
 app = FastAPI(title="CEMA API", version="0.5.0", lifespan=lifespan)
 

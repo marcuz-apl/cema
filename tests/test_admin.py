@@ -246,3 +246,22 @@ def test_admin_poller_status_and_toggle():
     t_resp2 = client.post("/api/admin/poller/toggle?enable=true", headers=AUTH)
     assert t_resp2.status_code == 200
     assert t_resp2.json()["enabled"] is True
+
+def test_admin_backfill_mag_floor_2_validation():
+    # Verify BackfillRequest accepts min_mag starting from 2.0
+    payload = {
+        "start_date": "2024-01-01",
+        "end_date": "2024-01-02",
+        "min_mag": 2.0,
+        "chunk_days": 60,
+        "mode": "merge",
+        "regions": "canada",
+        "source": "usgs",
+    }
+    client.post("/api/admin/backfill/reset", headers=AUTH)
+    resp = client.post("/api/admin/backfill", json=payload, headers=AUTH)
+    assert resp.status_code in (200, 400)
+    if resp.status_code == 200:
+        data = resp.json()
+        assert data["status"] in ("started", "busy")
+        client.post("/api/admin/backfill/reset", headers=AUTH)
