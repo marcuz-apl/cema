@@ -19,7 +19,7 @@ def init_db():
         if not os.path.exists(path):
             conn = sqlite3.connect(path)
             conn.execute("PRAGMA journal_mode=WAL;")
-            conn.execute("CREATE TABLE IF NOT EXISTS earthquakes (id INTEGER PRIMARY KEY AUTOINCREMENT, region TEXT, province TEXT, event_time_utc TEXT, latitude REAL, longitude REAL, depth_km REAL, magnitude REAL, source TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)")
+            conn.execute("CREATE TABLE IF NOT EXISTS earthquakes (id INTEGER PRIMARY KEY AUTOINCREMENT, region TEXT, province TEXT, event_time_utc TEXT, latitude REAL, longitude REAL, depth_km REAL, magnitude REAL, source TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, country TEXT DEFAULT NULL)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_time ON earthquakes(event_time_utc)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_mag ON earthquakes(magnitude)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_lat_lon ON earthquakes(latitude, longitude)")
@@ -28,6 +28,11 @@ def init_db():
         else:
             conn = sqlite3.connect(path)
             conn.execute("PRAGMA journal_mode=WAL;")
+            # Ensure country column exists
+            cols = [c[1] for c in conn.execute("PRAGMA table_info(earthquakes)").fetchall()]
+            if "country" not in cols:
+                conn.execute("ALTER TABLE earthquakes ADD COLUMN country TEXT DEFAULT NULL")
+                conn.commit()
             count = conn.execute("SELECT COUNT(*) FROM earthquakes").fetchone()[0]
             conn.close()
             if count == 0:
@@ -57,7 +62,8 @@ app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 class Earthquake(BaseModel):
     id: int
     region: str
-    province: Optional[str]
+    province: Optional[str] = None
+    country: Optional[str] = None
     event_time_utc: str
     latitude: float
     longitude: float

@@ -14,6 +14,10 @@ admin panel for on-demand backfill / sync jobs).
 """
 import json
 import os
+try:
+    from .country_assigner import assign_location
+except ImportError:
+    from country_assigner import assign_location
 import sqlite3
 import sys
 import time
@@ -79,6 +83,7 @@ def fetch_page(rows, region, start, end, min_mag=MIN_MAG):
         time_ms = props.get("time")
         if mag is None or not time_ms or len(coords) < 2:
             continue
+        loc = assign_location(float(coords[1]), float(coords[0]), region)
         rows.append((
             region,
             datetime.fromtimestamp(time_ms / 1000, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -87,6 +92,8 @@ def fetch_page(rows, region, start, end, min_mag=MIN_MAG):
             round(float(props.get("depth") if props.get("depth") is not None else coords[2] or 0), 1),
             round(float(mag), 1),
             "USGS",
+            loc.get("province"),
+            loc.get("country_code"),
         ))
     return len(features)
 
@@ -146,8 +153,8 @@ def merge_rows(region, rows):
             skipped += 1
             continue
         conn.execute(
-            "INSERT INTO earthquakes (region, event_time_utc, latitude, longitude, depth_km, magnitude, source)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO earthquakes (region, event_time_utc, latitude, longitude, depth_km, magnitude, source, province, country)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             r,
         )
         existing.add(key)
@@ -163,8 +170,8 @@ def replace_region(region, rows):
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("DELETE FROM earthquakes WHERE region = ?", (region,))
     conn.executemany(
-        "INSERT INTO earthquakes (region, event_time_utc, latitude, longitude, depth_km, magnitude, source)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO earthquakes (region, event_time_utc, latitude, longitude, depth_km, magnitude, source, province, country)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         rows,
     )
     conn.commit()
@@ -207,7 +214,7 @@ def run_backfill_job(
         # Tag rows with actual source
         if actual_source != "usgs":
             src_tag = "NRCan" if (actual_source == "nrcan" and region == "canada") else ("CENC" if (actual_source == "cenc" and region == "china") else "USGS")
-            rows = [(r[0], r[1], r[2], r[3], r[4], r[5], src_tag) for r in rows]
+            rows = [(r[0], r[1], r[2], r[3], r[4], r[5], src_tag, r[7], r[8]) for r in rows]
         if not rows:
             if on_log:
                 on_log(f"[{region}] no events found; skipping write.")

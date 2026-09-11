@@ -7,6 +7,7 @@ import asyncio
 import io
 import json
 import os
+from backend.ingestion.country_assigner import assign_location
 import sqlite3
 import threading
 import time
@@ -804,11 +805,13 @@ async def admin_create_earthquake(
     path = os.path.join(DB_DIR, f"eq-{event.region}.db")
     conn = sqlite3.connect(path)
     conn.execute("PRAGMA journal_mode=WAL;")
+    loc = assign_location(event.latitude, event.longitude, event.region)
     cur = conn.execute(
-        "INSERT INTO earthquakes (region, event_time_utc, latitude, longitude, depth_km, magnitude, source)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO earthquakes (region, event_time_utc, latitude, longitude, depth_km, magnitude, source, province, country)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (event.region, event.event_time_utc, event.latitude, event.longitude,
-         event.depth_km, event.magnitude, event.source or "OPERATOR"),
+         event.depth_km, event.magnitude, event.source or "OPERATOR",
+         loc.get("province"), loc.get("country_code")),
     )
     conn.commit()
     new_id = cur.lastrowid

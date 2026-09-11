@@ -794,7 +794,12 @@
     if (!pointInAoi(e.latitude, e.longitude)) return false;
     if (state.search) {
       const q = state.search.toLowerCase();
-      if (!String(e.region).toLowerCase().includes(q)) return false;
+      const loc = formatLocation(e);
+      const match = String(e.region).toLowerCase().includes(q) ||
+                    (loc.province || '').toLowerCase().includes(q) ||
+                    (loc.countryName || '').toLowerCase().includes(q) ||
+                    (loc.countryCode || '').toLowerCase().includes(q);
+      if (!match) return false;
     }
     return true;
   }
@@ -814,7 +819,7 @@
   function addMarker(e) {
     const color = magColor(e.magnitude);
     const radius = Math.max(5, Math.min(22, e.magnitude * 3.2));
-    const flag = REGIONS[e.region] || '🌍';
+    const loc = formatLocation(e);
     const m = L.circleMarker([e.latitude, e.longitude], {
       radius,
       color: color,
@@ -828,7 +833,7 @@
     m.bindPopup(`
       <div class="popup-card">
         <div class="popup-row">
-          <span class="popup-title"><span class="flag">${flag}</span> ${e.region}</span>
+          <span class="popup-title"><span class="flag">${loc.flag}</span> ${loc.text}</span>
           <span class="popup-mag" style="color:${color}">M${e.magnitude.toFixed(1)}</span>
         </div>
         <div class="popup-grid">
@@ -844,7 +849,13 @@
   function filterBySearch(data) {
     if (!state.search) return data;
     const q = state.search.toLowerCase();
-    return data.filter(e => String(e.region).toLowerCase().includes(q));
+    return data.filter(e => {
+      const loc = formatLocation(e);
+      return String(e.region).toLowerCase().includes(q) ||
+             (loc.province || '').toLowerCase().includes(q) ||
+             (loc.countryName || '').toLowerCase().includes(q) ||
+             (loc.countryCode || '').toLowerCase().includes(q);
+    });
   }
 
   function renderFeed() {
@@ -860,16 +871,16 @@
     }
     feedItems.innerHTML = data.map(e => {
       const color = magColor(e.magnitude);
-      const flag = REGIONS[e.region] || '🌍';
+      const loc = formatLocation(e);
       const time = new Date(e.event_time_utc);
       const dateStr = time.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
       const timeStr = time.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
       const source = e.source || (e.region === 'canada' ? 'NRCan' : 'CENC');
       return `
-        <div class="event-card" data-lat="${e.latitude}" data-lon="${e.longitude}" style="--mag-color:${color}" tabindex="0" role="button" aria-label="M${e.magnitude.toFixed(1)} ${e.region} ${dateStr}">
+        <div class="event-card" data-lat="${e.latitude}" data-lon="${e.longitude}" style="--mag-color:${color}" tabindex="0" role="button" aria-label="M${e.magnitude.toFixed(1)} ${loc.text} ${dateStr}">
           <span class="mag-pill" style="--mag-color:${color}">${e.magnitude.toFixed(1)}</span>
           <div class="event-card-main">
-            <div class="event-card-region"><span class="flag">${flag}</span> ${e.province ? e.province + ' · ' : ''}${e.region.charAt(0).toUpperCase() + e.region.slice(1)}</div>
+            <div class="event-card-region"><span class="flag">${loc.flag}</span> ${loc.text}</div>
             <div class="event-card-mag">M${e.magnitude.toFixed(1)}</div>
             <div class="event-card-meta">
               <span class="event-card-time">${dateStr}<span class="sep"> · </span>${timeStr}</span>
@@ -1149,19 +1160,22 @@ const sorted = getPlaybackData();
 
     $('table-count').textContent = `${state.tableData.length} events`;
 
-    tableBody.innerHTML = page.map(e => `
+    tableBody.innerHTML = page.map(e => {
+      const loc = formatLocation(e);
+      return `
       <tr data-lat="${e.latitude}" data-lon="${e.longitude}">
         <td class="mag-cell" style="--mag-color:${magColor(e.magnitude)}">
           <span class="cell-swatch" style="background:${magColor(e.magnitude)}"></span>
           ${e.magnitude.toFixed(1)}
         </td>
-        <td class="region-cell">${REGIONS[e.region] || '🌍'} ${e.region}</td>
+        <td class="region-cell"><span class="flag">${loc.flag}</span> ${loc.text}</td>
         <td>${new Date(e.event_time_utc).toLocaleString()}</td>
         <td>${e.latitude.toFixed(3)}</td>
         <td>${e.longitude.toFixed(3)}</td>
         <td>${(e.depth_km || 0).toFixed(1)} km</td>
         <td><span class="cell-source">${e.source || '—'}</span></td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
 
     tableBody.querySelectorAll('tr').forEach(tr => {
       tr.addEventListener('click', () => {
@@ -1343,14 +1357,58 @@ const sorted = getPlaybackData();
     if (e.region === 'canada' && PROV_CANON[k]) return PROV_CANON[k];
     return e.province;
   }
-  function beltFor(name, region) {
+
+  const COUNTRIES = {
+    CA: { flag: '🇨🇦', name: 'Canada' },
+    US: { flag: '🇺🇸', name: 'USA' },
+    CN: { flag: '🇨🇳', name: 'China' },
+    JP: { flag: '🇯🇵', name: 'Japan' },
+    RU: { flag: '🇷🇺', name: 'Russia' },
+    MN: { flag: '🇲🇳', name: 'Mongolia' },
+    TJ: { flag: '🇹🇯', name: 'Tajikistan' },
+    KG: { flag: '🇰🇬', name: 'Kyrgyzstan' },
+    KZ: { flag: '🇰��', name: 'Kazakhstan' },
+    IN: { flag: '🇮🇳', name: 'India' },
+    PK: { flag: '🇵🇰', name: 'Pakistan' },
+    NP: { flag: '🇳🇵', name: 'Nepal' },
+    BT: { flag: '🇧🇹', name: 'Bhutan' },
+    BD: { flag: '🇧🇩', name: 'Bangladesh' },
+    MM: { flag: '🇲🇲', name: 'Myanmar' },
+    VN: { flag: '🇻🇳', name: 'Vietnam' },
+    LA: { flag: '🇱🇦', name: 'Laos' },
+    AF: { flag: '🇦🇫', name: 'Afghanistan' },
+    TW: { flag: '🇹🇼', name: 'Taiwan' },
+    'CN-TW': { flag: '🇹🇼', name: 'Taiwan' },
+    GL: { flag: '🇬🇱', name: 'Greenland' },
+    OFS: { flag: '🌊', name: 'Offshore' }
+  };
+
+  function formatLocation(e) {
+    const c = COUNTRIES[e.country] || (e.region === 'canada' ? COUNTRIES.CA : COUNTRIES.CN);
+    const flag = c.flag;
+    const countryName = c.name;
+    const prov = provinceName(e);
+    if (prov) {
+      return { flag, countryCode: e.country || '??', countryName, province: prov, text: `${countryName} · ${prov}`, title: `${countryName} (${prov})` };
+    }
+    return { flag, countryCode: e.country || '??', countryName, province: null, text: countryName, title: countryName };
+  }
+  function beltFor(name, region, country) {
     const u = (name || '').toUpperCase();
-    if (region === 'canada') {
+    if (country === 'US' || /WYOMING|IDAHO|MONTANA|ALASKA|WASHINGTON|OREGON|NEVADA|MINNESOTA/.test(u)) {
+      if (/ALASKA|WASHINGTON|OREGON/.test(u)) return { tag: 'CASC', cls: 'tag-casc', belt: 'Pacific Rim & Cordillera' };
+      return { tag: 'WRAN', cls: 'tag-wran', belt: 'Rocky Mountains & Western Orogen' };
+    }
+    if (region === 'canada' || country === 'CA') {
       if (/BRITISH COLUMBIA|YUKON|NUNAVUT|NORTHWEST/.test(u)) return { tag: 'CASC', cls: 'tag-casc', belt: 'Pacific Cordillera & Cascadia' };
       if (/ALBERTA|SASKATCHEWAN|MANITOBA/.test(u)) return { tag: 'WRAN', cls: 'tag-wran', belt: 'Western Interior Platform' };
       return { tag: 'SHLD', cls: 'tag-shld', belt: 'Canadian Shield & Stable Interior' };
     }
-    if (/XINJIANG|XIZANG|QINGHAI|GANSU|SICHUAN|YUNNAN|NINGXIA|CHONGQING/.test(u)) return { tag: 'TIBH', cls: 'tag-tibh', belt: 'Tibetan–Himalayan Collision Belt' };
+    if (country === 'JP' || /JAPAN/.test(u)) return { tag: 'PACR', cls: 'tag-casc', belt: 'Pacific Ring of Fire' };
+    if (/TAJIKISTAN|KYRGYZSTAN|AFGHANISTAN|PAKISTAN|INDIA|NEPAL|BHUTAN|MYANMAR|XINJIANG|XIZANG|QINGHAI|GANSU|SICHUAN|YUNNAN/.test(u) ||
+        ['TJ', 'KG', 'KZ', 'AF', 'PK', 'IN', 'NP', 'BT', 'MM'].includes(country)) {
+      return { tag: 'TIBH', cls: 'tag-tibh', belt: 'Tibetan–Himalayan Collision Belt' };
+    }
     return { tag: 'CRAT', cls: 'tag-crat', belt: 'East Asian Craton & Margin' };
   }
 
@@ -1773,9 +1831,10 @@ const sorted = getPlaybackData();
     quakes.forEach(e => {
       const m = parseFloat(e.magnitude) || 0;
       const d = parseFloat(e.depth_km) || 0;
-      const name = provinceName(e) || (e.region === 'canada' ? 'Offshore Canada' : 'Offshore China');
+      const loc = formatLocation(e);
+      const name = loc.text;
       const region = e.region || 'other';
-      if (!regionMap[name]) regionMap[name] = { count: 0, maxM: 0, region };
+      if (!regionMap[name]) regionMap[name] = { count: 0, maxM: 0, region, flag: loc.flag, country: loc.countryCode };
       regionMap[name].count++;
       if (m > regionMap[name].maxM) regionMap[name].maxM = m;
 
@@ -1791,7 +1850,7 @@ const sorted = getPlaybackData();
       const cIdx = m < 3.0 ? 0 : m < 4.5 ? 1 : m < 6.0 ? 2 : 3;
       matrix[rIdx][cIdx]++;
 
-      const b = beltFor(e.province ? name : null, region);
+      const b = beltFor(name, region, loc.countryCode);
       if (!belts[b.tag]) belts[b.tag] = { ...b, count: 0, maxM: 0, energy: 0 };
       belts[b.tag].count++;
       if (m > belts[b.tag].maxM) belts[b.tag].maxM = m;
@@ -1803,8 +1862,8 @@ const sorted = getPlaybackData();
       const topMax = sorted[0] ? sorted[0][1].count : 1;
       topList.innerHTML = sorted.map(([rName, rData], idx) => {
         const pct = Math.round((rData.count / topMax) * 100);
-        const tag = beltFor(rData.region === 'canada' && !rName.startsWith('Offshore') ? rName : rData.region === 'canada' ? 'Canadian Shield' : rName, rData.region);
-        const flag = REGIONS[rData.region] || '🌍';
+        const tag = beltFor(rName, rData.region, rData.country);
+        const flag = rData.flag || REGIONS[rData.region] || '🌍';
         return `
           <div class="region-row-ext" title="${rName}: ${rData.count.toLocaleString()} events • ${tag.belt}">
             <span class="region-rank">#${idx + 1}</span>
