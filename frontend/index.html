@@ -140,8 +140,8 @@
 
       <div class="mag-slider-wrap" aria-label="Magnitude filter">
         <span class="slider-label">MAG</span>
-        <input type="range" id="mag-slider" min="2.5" max="8" step="0.1" value="2.5">
-        <span class="mag-slider-value" id="mag-slider-value">2.5</span>
+        <input type="range" id="mag-slider" min="3.0" max="8" step="0.1" value="3.0">
+        <span class="mag-slider-value" id="mag-slider-value">3.0</span>
       </div>
 
       <div class="search-box">
@@ -535,9 +535,9 @@
 
   /* ---------- Constants ---------- */
   const MAG_TIERS = [
-    { max: 3.0, color: '#10b981', name: '< 3.0' },
-    { max: 4.5, color: '#3B82F6', name: '3.0 – 4.5' },
-    { max: 6.0, color: '#EAB308', name: '4.5 – 6.0' },
+    { max: 4.0, color: '#10b981', name: '3.0 – 4.0' },
+    { max: 5.0, color: '#3B82F6', name: '4.0 – 5.0' },
+    { max: 6.0, color: '#EAB308', name: '5.0 – 6.0' },
     { max: 7.0, color: '#DC2626', name: '6.0 – 7.0' },
     { max: Infinity, color: '#9333EA', name: '≥ 7.0' }
   ];
@@ -548,7 +548,7 @@
   const state = {
     region: 'canada',
     days: 30,
-    minMag: 2.5,
+    minMag: 3.0,
     search: '',
     theme: 'dark',
     tableData: [],
