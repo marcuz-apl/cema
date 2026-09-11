@@ -5,6 +5,18 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260911w] - 2026-09-11
+
+### Changed
+- **Mobile Analytics Deck Scrollable Cards**: Enabled vertical scrolling for cards across all 4 Analytics Deck tabs (`Overview`, `Time`, `Energy`, `Regions`) in mobile view (`max-width: 768px`).
+  - Configured `.modal.modal-analytics` with `height: 94vh; max-height: 94vh; display: flex; flex-direction: column; overflow: hidden;`.
+  - Configured `.analytics-modal-body` with `flex: 1 1 auto; overflow-y: auto !important; -webkit-overflow-scrolling: touch; min-height: 0; padding: 0.6rem 0.75rem 2.2rem;` ensuring comfortable touch scrolling.
+  - Set `.analytics-tab-pane.active` and grid containers (`.analytics-grid-*`) to `height: auto !important; min-height: min-content; display: flex; flex-direction: column; flex: none; gap: 0.85rem;`.
+  - Set individual `.analytics-card` elements to natural height (`height: auto; min-height: auto; flex: none;`), enabling cards to stack and scroll smoothly without content truncation.
+  - Strictly preserved desktop A4 single-page view (`overflow: hidden; height: 820px;`) for landscape bulletin presentation and export.
+
+---
+
 ## [v0.5.0+260911v] - 2026-09-11
 
 ### Changed

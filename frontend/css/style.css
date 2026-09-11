@@ -4107,28 +4107,95 @@ header {
     max-width: 100%;
   }
 
-  .analytics-grid,
-  .analytics-grid-overview {
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
-  }
-  .tectonic-belts-summary {
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  }
-
-  .analytics-grid-energy,
-  .analytics-grid-regions,
-  .analytics-grid-time-lower {
-    grid-template-columns: 1fr;
+  /* Analytics Deck: scrollable cards across Overview, Time, Energy, Regions */
+  .modal.modal-analytics {
+    height: 94vh;
+    max-height: 94vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .modal-analytics-header {
+    flex-shrink: 0;
     gap: 0.45rem 0.7rem;
   }
 
   .analytics-scope-toggle { order: 3; }
 
-  .analytics-tabs-nav { padding: 0 0.6rem; }
+  .analytics-tabs-nav {
+    flex-shrink: 0;
+    padding: 0 0.6rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .analytics-tabs-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .analytics-modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    min-height: 0;
+    padding: 0.6rem 0.75rem 2.2rem;
+  }
+
+  .analytics-tab-pane.active {
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+    min-height: min-content;
+    overflow: visible;
+    flex: none;
+    gap: 0.85rem;
+  }
+
+  .analytics-kpi-ribbon {
+    flex-shrink: 0;
+  }
+
+  .analytics-grid,
+  .analytics-grid-overview,
+  .analytics-grid-time-upper,
+  .analytics-grid-time-lower,
+  .analytics-grid-energy,
+  .analytics-grid-regions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    height: auto !important;
+    min-height: min-content;
+    flex: none;
+  }
+
+  .analytics-grid-overview .analytics-card,
+  .analytics-grid-time-upper .analytics-card,
+  .analytics-grid-time-lower .analytics-card,
+  .analytics-grid-energy .analytics-card,
+  .analytics-grid-regions .analytics-card,
+  .card-regions-left,
+  .regions-right-col,
+  .energy-side-col {
+    min-height: auto;
+    height: auto;
+    flex: none;
+  }
+
+  .card-energy-main {
+    height: auto !important;
+    min-height: 280px;
+    flex: none;
+  }
+
+  .tectonic-belts-summary {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
 
   .kpi-val { font-size: 1.25rem; }
 
