@@ -3,6 +3,7 @@
 
 Resolves sovereign country (ISO 3166-1 alpha-2) and province/state names
 using bounding-box pre-filtering and ray-casting point-in-geometry.
+For Canada and US, assigns official 2-letter postal abbreviations (e.g. BC, YT, WY, ID).
 Zero external API calls. Sub-millisecond execution per coordinate.
 """
 import json
@@ -16,6 +17,27 @@ COUNTRIES_FILE = os.path.join(BACKEND_DATA, "world_countries.geojson")
 US_STATES_FILE = os.path.join(BACKEND_DATA, "us_states.geojson")
 PROV_CANADA_FILE = os.path.join(FRONTEND_DATA, "provinces-canada.geojson")
 PROV_CHINA_FILE = os.path.join(FRONTEND_DATA, "provinces-china.geojson")
+
+CA_PROV_CODES = {
+    "Alberta": "AB", "British Columbia": "BC", "Manitoba": "MB", "New Brunswick": "NB",
+    "Newfoundland and Labrador": "NL", "Nova Scotia": "NS", "Northwest Territories": "NT",
+    "Nunavut": "NU", "Ontario": "ON", "Prince Edward Island": "PE", "Québec": "QC", "Quebec": "QC",
+    "Saskatchewan": "SK", "Yukon": "YT"
+}
+
+US_STATE_CODES = {
+    "Alabama": "AL", "Alaska": "AK", "Arizona": "AZ", "Arkansas": "AR", "California": "CA",
+    "Colorado": "CO", "Connecticut": "CT", "Delaware": "DE", "District of Columbia": "DC",
+    "Florida": "FL", "Georgia": "GA", "Hawaii": "HI", "Idaho": "ID", "Illinois": "IL",
+    "Indiana": "IN", "Iowa": "IA", "Kansas": "KS", "Kentucky": "KY", "Louisiana": "LA",
+    "Maine": "ME", "Maryland": "MD", "Massachusetts": "MA", "Michigan": "MI", "Minnesota": "MN",
+    "Mississippi": "MS", "Missouri": "MO", "Montana": "MT", "Nebraska": "NE", "Nevada": "NV",
+    "New Hampshire": "NH", "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY",
+    "North Carolina": "NC", "North Dakota": "ND", "Ohio": "OH", "Oklahoma": "OK", "Oregon": "OR",
+    "Pennsylvania": "PA", "Rhode Island": "RI", "South Carolina": "SC", "South Dakota": "SD",
+    "Tennessee": "TN", "Texas": "TX", "Utah": "UT", "Vermont": "VT", "Virginia": "VA",
+    "Washington": "WA", "West Virginia": "WV", "Wisconsin": "WI", "Wyoming": "WY", "Puerto Rico": "PR"
+}
 
 
 def _calc_bbox(geom):
@@ -112,11 +134,13 @@ class CountryAssigner:
                 gj = json.load(f)
             for f in gj.get("features", []):
                 props = f.get("properties", {})
-                name = props.get("name") or props.get("code") or ""
+                raw_name = props.get("name") or props.get("code") or ""
+                # Use 2-letter postal code
+                code = props.get("code") or CA_PROV_CODES.get(raw_name, raw_name)
                 geom = f.get("geometry", {})
                 if geom and geom.get("type") in {"Polygon", "MultiPolygon"}:
                     bbox = _calc_bbox(geom)
-                    self.provinces_ca.append((name, bbox, geom))
+                    self.provinces_ca.append((code, bbox, geom))
 
         if os.path.exists(PROV_CHINA_FILE):
             with open(PROV_CHINA_FILE, "r", encoding="utf-8") as f:
@@ -134,11 +158,13 @@ class CountryAssigner:
                 gj = json.load(f)
             for f in gj.get("features", []):
                 props = f.get("properties", {})
-                name = props.get("name") or ""
+                raw_name = props.get("name") or ""
+                # Use 2-letter postal code
+                code = US_STATE_CODES.get(raw_name, raw_name)
                 geom = f.get("geometry", {})
                 if geom and geom.get("type") in {"Polygon", "MultiPolygon"}:
                     bbox = _calc_bbox(geom)
-                    self.us_states.append((name, bbox, geom))
+                    self.us_states.append((code, bbox, geom))
 
     @classmethod
     def get_instance(cls):
@@ -152,18 +178,29 @@ class CountryAssigner:
         Returns:
             dict: { 'country_code': str, 'country_name': str, 'province': Optional[str] }
         """
-        # 1. First check if it falls inside known Canadian provinces
+        # 1. First check if it falls inside Canadian provinces (returns 2-letter code e.g. BC, YT)
         if sector == "canada" or sector is None:
-            for name, bbox, geom in self.provinces_ca:
+            for code, bbox, geom in self.provinces_ca:
                 if bbox[0] <= lat <= bbox[2] and bbox[1] <= lon <= bbox[3]:
                     if _point_in_geometry(lat, lon, geom):
                         return {
                             "country_code": "CA",
                             "country_name": "Canada",
-                            "province": name
+                            "province": code
                         }
 
-        # 2. Check if it falls inside known Chinese provinces
+        # 2. Check if inside US states (returns 2-letter code e.g. WY, ID, AK)
+        if sector == "canada" or sector is None:
+            for code, bbox, geom in self.us_states:
+                if bbox[0] <= lat <= bbox[2] and bbox[1] <= lon <= bbox[3]:
+                    if _point_in_geometry(lat, lon, geom):
+                        return {
+                            "country_code": "US",
+                            "country_name": "United States",
+                            "province": code
+                        }
+
+        # 3. Check if it falls inside Chinese provinces
         if sector == "china" or sector is None:
             for name, bbox, geom in self.provinces_cn:
                 if bbox[0] <= lat <= bbox[2] and bbox[1] <= lon <= bbox[3]:
@@ -174,28 +211,22 @@ class CountryAssigner:
                             "province": name
                         }
 
-        # 3. Check if inside US states
-        if sector == "canada" or sector is None:
-            for name, bbox, geom in self.us_states:
-                if bbox[0] <= lat <= bbox[2] and bbox[1] <= lon <= bbox[3]:
-                    if _point_in_geometry(lat, lon, geom):
-                        return {
-                            "country_code": "US",
-                            "country_name": "United States",
-                            "province": name
-                        }
-
         # 4. Check sovereign country polygons
         for name, code, bbox, geom in self.countries:
             if bbox[0] <= lat <= bbox[2] and bbox[1] <= lon <= bbox[3]:
                 if _point_in_geometry(lat, lon, geom):
                     prov = None
                     if code == "US":
-                        # Double check US states if not yet matched
-                        for s_name, s_bbox, s_geom in self.us_states:
+                        for s_code, s_bbox, s_geom in self.us_states:
                             if s_bbox[0] <= lat <= s_bbox[2] and s_bbox[1] <= lon <= s_bbox[3]:
                                 if _point_in_geometry(lat, lon, s_geom):
-                                    prov = s_name
+                                    prov = s_code
+                                    break
+                    elif code == "CA":
+                        for c_code, c_bbox, c_geom in self.provinces_ca:
+                            if c_bbox[0] <= lat <= c_bbox[2] and c_bbox[1] <= lon <= c_bbox[3]:
+                                if _point_in_geometry(lat, lon, c_geom):
+                                    prov = c_code
                                     break
                     return {
                         "country_code": code,
@@ -218,13 +249,11 @@ def assign_location(lat: float, lon: float, sector: str = None):
 if __name__ == "__main__":
     test_points = [
         (49.2827, -123.1207, "canada"),  # Vancouver, BC
-        (43.7742, -105.3225, "canada"),  # Gillette, Wyoming (US)
-        (60.5098, -140.0887, "canada"),  # Yakutat, Alaska (US)
-        (47.5595, -92.6648, "canada"),   # Minnesota (US)
-        (30.6586, 104.0648, "china"),   # Chengdu, Sichuan (CN)
-        (37.3514, 74.5557, "china"),    # Murghob, Tajikistan (TJ)
-        (35.3273, 133.0704, "china"),   # Matsue, Japan (JP)
-        (26.8062, 130.0648, "china"),   # Offshore East China Sea
+        (43.7742, -105.3225, "canada"),  # Gillette, WY (US)
+        (60.5098, -140.0887, "canada"),  # Yakutat, AK (US) / YT border
+        (47.5595,  -92.6648, "canada"),  # MN (US)
+        (30.6586,  104.0648, "china"),   # Chengdu, Sichuan (CN)
+        (37.3514,   74.5557, "china"),   # Tajikistan
     ]
     for lat, lon, sec in test_points:
         res = assign_location(lat, lon, sec)

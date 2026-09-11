@@ -1346,16 +1346,33 @@ const sorted = getPlaybackData();
     return Math.abs((n * sxy - sx * sy) / denom);
   }
 
-  const PROV_CANON = {
-    yt: 'Yukon', bc: 'British Columbia', on: 'Ontario', qc: 'Québec', nu: 'Nunavut',
-    nt: 'Northwest Territories', ab: 'Alberta', sk: 'Saskatchewan', mb: 'Manitoba',
-    nb: 'New Brunswick', ns: 'Nova Scotia', nl: 'Newfoundland and Labrador', pe: 'Prince Edward Island'
+  const PROV_2LETTER = {
+    'yukon': 'YT', 'british columbia': 'BC', 'ontario': 'ON', 'québec': 'QC', 'quebec': 'QC',
+    'nunavut': 'NU', 'northwest territories': 'NT', 'alberta': 'AB', 'saskatchewan': 'SK',
+    'manitoba': 'MB', 'new brunswick': 'NB', 'nova scotia': 'NS', 'newfoundland and labrador': 'NL',
+    'prince edward island': 'PE', 'yt': 'YT', 'bc': 'BC', 'on': 'ON', 'qc': 'QC', 'nu': 'NU',
+    'nt': 'NT', 'ab': 'AB', 'sk': 'SK', 'mb': 'MB', 'nb': 'NB', 'ns': 'NS', 'nl': 'NL', 'pe': 'PE',
+    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+    'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+    'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS',
+    'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD', 'massachusetts': 'MA',
+    'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO', 'montana': 'MT',
+    'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM',
+    'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK',
+    'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+    'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY'
   };
+
   function provinceName(e) {
     if (!e.province) return null;
-    const k = e.province.toLowerCase();
-    if (e.region === 'canada' && PROV_CANON[k]) return PROV_CANON[k];
-    return e.province;
+    const p = e.province.trim();
+    const k = p.toLowerCase();
+    if (PROV_2LETTER[k]) return PROV_2LETTER[k];
+    if (e.country === 'CA' || e.country === 'US' || e.region === 'canada') {
+      return p.length <= 3 ? p.toUpperCase() : p;
+    }
+    return p;
   }
 
   const COUNTRIES = {
@@ -1395,13 +1412,13 @@ const sorted = getPlaybackData();
   }
   function beltFor(name, region, country) {
     const u = (name || '').toUpperCase();
-    if (country === 'US' || /WYOMING|IDAHO|MONTANA|ALASKA|WASHINGTON|OREGON|NEVADA|MINNESOTA/.test(u)) {
-      if (/ALASKA|WASHINGTON|OREGON/.test(u)) return { tag: 'CASC', cls: 'tag-casc', belt: 'Pacific Rim & Cordillera' };
+    if (country === 'US' || /\b(WY|ID|MT|AK|WA|OR|NV|MN)\b/.test(u) || /WYOMING|IDAHO|MONTANA|ALASKA|WASHINGTON|OREGON|NEVADA|MINNESOTA/.test(u)) {
+      if (/\b(AK|WA|OR)\b/.test(u) || /ALASKA|WASHINGTON|OREGON/.test(u)) return { tag: 'CASC', cls: 'tag-casc', belt: 'Pacific Rim & Cordillera' };
       return { tag: 'WRAN', cls: 'tag-wran', belt: 'Rocky Mountains & Western Orogen' };
     }
     if (region === 'canada' || country === 'CA') {
-      if (/BRITISH COLUMBIA|YUKON|NUNAVUT|NORTHWEST/.test(u)) return { tag: 'CASC', cls: 'tag-casc', belt: 'Pacific Cordillera & Cascadia' };
-      if (/ALBERTA|SASKATCHEWAN|MANITOBA/.test(u)) return { tag: 'WRAN', cls: 'tag-wran', belt: 'Western Interior Platform' };
+      if (/\b(BC|YT|NT|NU)\b/.test(u) || /BRITISH COLUMBIA|YUKON|NUNAVUT|NORTHWEST/.test(u)) return { tag: 'CASC', cls: 'tag-casc', belt: 'Pacific Cordillera & Cascadia' };
+      if (/\b(AB|SK|MB)\b/.test(u) || /ALBERTA|SASKATCHEWAN|MANITOBA/.test(u)) return { tag: 'WRAN', cls: 'tag-wran', belt: 'Western Interior Platform' };
       return { tag: 'SHLD', cls: 'tag-shld', belt: 'Canadian Shield & Stable Interior' };
     }
     if (country === 'JP' || /JAPAN/.test(u)) return { tag: 'PACR', cls: 'tag-casc', belt: 'Pacific Ring of Fire' };

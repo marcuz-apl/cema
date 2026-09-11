@@ -2,36 +2,36 @@ import pytest
 from backend.ingestion.country_assigner import assign_location
 
 def test_assign_canada_provinces():
-    # British Columbia
+    # British Columbia -> 2-letter code BC
     bc = assign_location(49.2827, -123.1207, "canada")
     assert bc["country_code"] == "CA"
-    assert "British Columbia" in bc["province"]
+    assert bc["province"] == "BC"
 
-    # Yukon
+    # Yukon -> 2-letter code YT
     yt = assign_location(60.7212, -135.0568, "canada")
     assert yt["country_code"] == "CA"
-    assert "Yukon" in yt["province"]
+    assert yt["province"] == "YT"
 
 def test_assign_us_in_canada_sector():
-    # Gillette, Wyoming
+    # Gillette, Wyoming -> 2-letter code WY
     wy = assign_location(43.7742, -105.3225, "canada")
     assert wy["country_code"] == "US"
     assert wy["country_name"] == "United States"
-    assert wy["province"] == "Wyoming"
+    assert wy["province"] == "WY"
 
-    # Minnesota
+    # Minnesota -> 2-letter code MN
     mn = assign_location(47.5595, -92.6648, "canada")
     assert mn["country_code"] == "US"
-    assert mn["province"] == "Minnesota"
+    assert mn["province"] == "MN"
 
 def test_assign_china_provinces():
-    # Sichuan
+    # Sichuan -> Full name
     sc = assign_location(30.6586, 104.0648, "china")
     assert sc["country_code"] == "CN"
     assert sc["country_name"] == "China"
     assert sc["province"] == "Sichuan"
 
-    # Xinjiang
+    # Xinjiang -> Full name
     xj = assign_location(41.7724, 81.0795, "china")
     assert xj["country_code"] == "CN"
     assert xj["province"] == "Xinjiang"
