@@ -19,7 +19,9 @@
   <!-- Left: mobile burger + brand -->
   <div class="header-left">
     <button class="icon-btn mobile-only" id="sidebar-toggle" data-tip="Feed" aria-label="Toggle seismic feed">
-      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 12h3l2-6 3 12 3-9 2 6h3l2-3 2 3h2"/>
+      </svg>
     </button>
     <div class="brand">
       <div class="brand-icon" aria-hidden="true">
@@ -96,6 +98,13 @@
     <span class="separator"></span>
     <button class="icon-btn" id="btn-theme" data-tip="Theme" aria-label="Toggle dark / light theme">
       <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="icon-btn mobile-burger-btn" id="btn-mobile-menu" data-tip="Menu" aria-label="Open mobile menu">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <line x1="4" y1="6" x2="20" y2="6"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="18" x2="20" y2="18"/>
+      </svg>
     </button>
   </div>
 </header>
@@ -533,6 +542,106 @@
     </div>
   </div>
 </div>
+
+<!-- Mobile Quick Actions Drawer -->
+<div class="mobile-menu-backdrop" id="mobile-menu-backdrop" aria-hidden="true"></div>
+<aside class="mobile-menu-drawer" id="mobile-menu-drawer" aria-label="Controls Menu">
+  <div class="mobile-drawer-header">
+    <div class="mobile-drawer-brand">
+      <div class="brand-icon-sm" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12h2l2-7 3 12 3-9 2 6h2"/><circle cx="19.5" cy="8" r="1.5" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="mobile-drawer-title">
+        <h3>CEMA Controls</h3>
+        <span>Operations & Tools</span>
+      </div>
+    </div>
+    <button class="icon-btn mobile-drawer-close" id="mobile-menu-close" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="mobile-drawer-clocks" aria-label="Live Regional Time">
+    <div class="mobile-clock-pill">
+      <span class="m-clock-flag">🇨🇦</span>
+      <span class="m-clock-tz">MST</span>
+      <span class="m-clock-time mono" id="mobile-clock-canada">--:--:--</span>
+    </div>
+    <div class="mobile-clock-pill">
+      <span class="m-clock-flag">🇨🇳</span>
+      <span class="m-clock-tz">CST</span>
+      <span class="m-clock-time mono" id="mobile-clock-china">--:--:--</span>
+    </div>
+  </div>
+
+  <div class="mobile-drawer-menu">
+    <button class="mobile-menu-item" id="mobile-action-audio" type="button">
+      <div class="mobile-item-icon audio-icon-wrap" id="mobile-audio-icon">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </div>
+      <div class="mobile-item-text">
+        <span class="mobile-item-title">Seismic Sonification</span>
+        <span class="mobile-item-sub">Dynamic magnitude audio</span>
+      </div>
+      <span class="mobile-item-badge" id="mobile-audio-badge">Muted</span>
+    </button>
+
+    <button class="mobile-menu-item" id="mobile-action-analytics" type="button">
+      <div class="mobile-item-icon">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19h16M7 15l3-3 3 3 5-6"/><path d="M4 5v14"/></svg>
+      </div>
+      <div class="mobile-item-text">
+        <span class="mobile-item-title">Seismic Analytics</span>
+        <span class="mobile-item-sub">4-Quadrant charts, b-value, energy</span>
+      </div>
+      <span class="mobile-item-arrow">›</span>
+    </button>
+
+    <button class="mobile-menu-item" id="mobile-action-table" type="button">
+      <div class="mobile-item-icon">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v5M15 4v5M9 14h.01M15 14h.01M9 17h.01M15 17h.01"/></svg>
+      </div>
+      <div class="mobile-item-text">
+        <span class="mobile-item-title">Data Table & Catalog</span>
+        <span class="mobile-item-sub">Full registry & CSV/GeoJSON export</span>
+      </div>
+      <span class="mobile-item-arrow">›</span>
+    </button>
+
+    <button class="mobile-menu-item" id="mobile-action-theme" type="button">
+      <div class="mobile-item-icon">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </div>
+      <div class="mobile-item-text">
+        <span class="mobile-item-title">Color Theme</span>
+        <span class="mobile-item-sub" id="mobile-theme-sub">Dark mode</span>
+      </div>
+      <span class="mobile-item-badge" id="mobile-theme-badge">Dark</span>
+    </button>
+
+    <button class="mobile-menu-item" id="mobile-action-fullscreen" type="button">
+      <div class="mobile-item-icon">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </div>
+      <div class="mobile-item-text">
+        <span class="mobile-item-title">Fullscreen</span>
+        <span class="mobile-item-sub">Immersive map view</span>
+      </div>
+      <span class="mobile-item-arrow">›</span>
+    </button>
+
+    <a href="/admin" class="mobile-menu-item" id="mobile-action-admin">
+      <div class="mobile-item-icon admin-accent">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      </div>
+      <div class="mobile-item-text">
+        <span class="mobile-item-title">Admin Console</span>
+        <span class="mobile-item-sub">Backfill, database & cron engine</span>
+      </div>
+      <span class="mobile-item-arrow">↗</span>
+    </a>
+  </div>
+</aside>
 
 <!-- Toast container -->
 <div class="toast-container" id="toast-container" aria-live="polite"></div>
@@ -2313,6 +2422,10 @@ const sorted = getPlaybackData();
         hour12: false
       }).format(now);
     }
+    const mElCa = $('mobile-clock-canada');
+    const mElCn = $('mobile-clock-china');
+    if (mElCa && elCa) mElCa.textContent = elCa.textContent;
+    if (mElCn && elCn) mElCn.textContent = elCn.textContent;
 
     const reg = state.region || 'canada';
     if (reg === 'canada') {
@@ -2494,6 +2607,69 @@ const sorted = getPlaybackData();
         th.classList.add(state.tableSort.dir === 'asc' ? 'sort-asc' : 'sort-desc');
         renderTable();
       });
+    });
+
+    /* Mobile Drawer Helpers & Events */
+    function updateMobileDrawerState() {
+      const audioBadge = $('mobile-audio-badge');
+      const audioIcon = $('mobile-audio-icon');
+      if (audioBadge) {
+        audioBadge.textContent = state.audioEnabled ? 'Active' : 'Muted';
+        audioBadge.classList.toggle('active', state.audioEnabled);
+      }
+      if (audioIcon) {
+        audioIcon.innerHTML = state.audioEnabled
+          ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'
+          : '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+      }
+      const themeBadge = $('mobile-theme-badge');
+      const themeSub = $('mobile-theme-sub');
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (themeBadge) themeBadge.textContent = isLight ? 'Light' : 'Dark';
+      if (themeSub) themeSub.textContent = isLight ? 'Light mode active' : 'Dark mode active';
+    }
+
+    function toggleMobileMenu(open) {
+      const drawer = $('mobile-menu-drawer');
+      const backdrop = $('mobile-menu-backdrop');
+      if (!drawer) return;
+      const isOpen = typeof open === 'boolean' ? open : !drawer.classList.contains('open');
+      drawer.classList.toggle('open', isOpen);
+      if (backdrop) backdrop.classList.toggle('active', isOpen);
+      if (isOpen) updateMobileDrawerState();
+    }
+
+    const btnMobMenu = $('btn-mobile-menu');
+    if (btnMobMenu) btnMobMenu.addEventListener('click', () => toggleMobileMenu(true));
+    const btnMobClose = $('mobile-menu-close');
+    if (btnMobClose) btnMobClose.addEventListener('click', () => toggleMobileMenu(false));
+    const mobBackdrop = $('mobile-menu-backdrop');
+    if (mobBackdrop) mobBackdrop.addEventListener('click', () => toggleMobileMenu(false));
+
+    const mobAudio = $('mobile-action-audio');
+    if (mobAudio) mobAudio.addEventListener('click', () => {
+      $('btn-sort').click();
+      updateMobileDrawerState();
+    });
+    const mobAnalytics = $('mobile-action-analytics');
+    if (mobAnalytics) mobAnalytics.addEventListener('click', () => {
+      toggleMobileMenu(false);
+      openAnalytics();
+    });
+    const mobTable = $('mobile-action-table');
+    if (mobTable) mobTable.addEventListener('click', () => {
+      toggleMobileMenu(false);
+      openTable();
+    });
+    const mobTheme = $('mobile-action-theme');
+    if (mobTheme) mobTheme.addEventListener('click', () => {
+      $('btn-theme').click();
+      updateMobileDrawerState();
+    });
+    const mobFs = $('mobile-action-fullscreen');
+    if (mobFs) mobFs.addEventListener('click', () => {
+      toggleFullscreen();
+      toggleMobileMenu(false);
     });
 
     /* Header actions */

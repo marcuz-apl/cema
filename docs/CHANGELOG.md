@@ -5,6 +5,19 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260911p] - 2026-09-11
+
+### Added
+- **Mobile Action Burger Menu**: Replaced the 5 desktop action buttons on mobile screens (≤768px) with a single touch-friendly Burger menu button opening an off-canvas Quick Actions drawer (`frontend/index.html`, `frontend/css/style.css`).
+- **Mobile Quick Actions Drawer**: Glassmorphic drawer containing contextual live clocks (MST/CST), Seismic Audio sonification toggle, Seismic Analytics Deck trigger, Data Table & Catalog trigger, Color Theme switch, Fullscreen mode, and link to Admin Console.
+- **Dedicated Seismic Feed Icon**: Updated mobile left header button to a seismograph wave icon with badge count to clearly distinguish it from the right-hand menu.
+
+### Changed
+- **Timeline Play Bar Bottom Anchoring**: Relocated the mobile timeline player to the bottom of the map viewport (`bottom: calc(0.5rem + env(safe-area-inset-bottom))`), removing the buggy top positioning (`top: 4.4rem`) that obstructed the time filter pills.
+- **Mobile Bottom Widget Hierarchy**: Docked the collapsible Layers and Magnitude legend widgets neatly above the timeline play bar (`bottom: calc(3.65rem + env(safe-area-inset-bottom))`).
+
+---
+
 ## [v0.5.0+260911m] - 2026-09-11
 
 ### Added
