@@ -1968,13 +1968,18 @@ header {
 }
 
 /* Scope toggle */
-.analytics-scope-toggle {
+.analytics-scope-toggle,
+.table-scope-toggle {
   display: inline-flex;
   background: var(--hover-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   padding: 3px;
   gap: 2px;
+}
+
+.table-scope-toggle {
+  margin-right: 0.35rem;
 }
 
 .scope-btn {

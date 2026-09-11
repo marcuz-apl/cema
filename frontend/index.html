@@ -253,10 +253,14 @@
         Earthquake Data Table
       </div>
       <div class="modal-actions">
-        <button class="btn" id="btn-export-csv">
+        <div class="table-scope-toggle" id="table-scope-toggle" role="group" aria-label="Catalog scope">
+          <button class="scope-btn active" id="btn-table-scope-1000" data-scope="1000">Latest 1000</button>
+          <button class="scope-btn" id="btn-table-scope-all" data-scope="all">All Time</button>
+        </div>
+        <button class="btn" id="btn-export-csv" title="Export to CSV">
           <span class="btn-icon">⬇</span> Export CSV
         </button>
-        <button class="btn" id="btn-export-geojson">
+        <button class="btn" id="btn-export-geojson" title="Export to GeoJSON">
           <span class="btn-icon">🌐</span> Export GeoJSON
         </button>
         <button class="modal-close" id="table-modal-close" aria-label="Close">
@@ -1090,11 +1094,32 @@ const sorted = getPlaybackData();
 
   /* ---------- Data table ---------- */
   async function openTable() {
-    const data = await api('/api/v1/earthquakes', { limit: 1000 });
-    state.tableData = data.items || [];
+    state.tableScope = state.tableScope || '1000';
+    await loadTableScope(state.tableScope);
+    openModal('table-modal');
+  }
+
+  async function loadTableScope(scope) {
+    state.tableScope = scope;
+    document.querySelectorAll('.table-scope-toggle .scope-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.scope === scope);
+    });
+    if (scope === 'all') {
+      if (!state.tableAllData || !state.tableAllData.length) {
+        showToast('Loading All-Time catalog (10.5k events)…', 'info');
+        const data = await api('/api/v1/earthquakes');
+        state.tableAllData = data.items || [];
+      }
+      state.tableData = state.tableAllData;
+    } else {
+      if (!state.tableLatest1000 || !state.tableLatest1000.length) {
+        const data = await api('/api/v1/earthquakes', { limit: 1000 });
+        state.tableLatest1000 = data.items || [];
+      }
+      state.tableData = state.tableLatest1000;
+    }
     state.tablePage = 0;
     renderTable();
-    openModal('table-modal');
   }
 
   function renderTable() {
@@ -1166,16 +1191,19 @@ const sorted = getPlaybackData();
       showToast('No data to export', 'warn');
       return;
     }
-    const header = ['id', 'region', 'event_time_utc', 'latitude', 'longitude', 'depth_km', 'magnitude', 'source'];
-    const lines = state.tableData.map(e => header.map(k => e[k]).join(','));
+    const scopeLabel = state.tableScope === 'all' ? 'All Time' : 'Latest 1000';
+    const scopeTag = state.tableScope === 'all' ? 'all_time' : 'latest_1000';
+    const header = ['id', 'region', 'event_time_utc', 'latitude', 'longitude', 'depth_km', 'magnitude', 'source', 'province'];
+    const lines = state.tableData.map(e => header.map(k => e[k] != null ? JSON.stringify(e[k]) : '""').join(','));
     const csv = [header.join(','), ...lines].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `cema_earthquakes_${new Date().toISOString().slice(0, 10)}.csv`;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.download = `cema_earthquakes_${scopeTag}_${dateStr}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast('CSV exported', 'success');
+    showToast(`CSV exported (${state.tableData.length.toLocaleString()} events · ${scopeLabel})`, 'success');
   }
 
   function exportGeoJSON() {
@@ -1183,11 +1211,14 @@ const sorted = getPlaybackData();
       showToast('No data to export', 'warn');
       return;
     }
+    const scopeLabel = state.tableScope === 'all' ? 'All Time' : 'Latest 1000';
+    const scopeTag = state.tableScope === 'all' ? 'all_time' : 'latest_1000';
     const featureCollection = {
       type: 'FeatureCollection',
       metadata: {
         generated: new Date().toISOString(),
-        title: 'CEMA Earthquake Catalog Export',
+        title: `CEMA Earthquake Catalog Export (${scopeLabel})`,
+        scope: scopeLabel,
         count: state.tableData.length,
         system: 'CEMA - Canada / China Earthquake Monitoring & Alert System'
       },
@@ -1218,10 +1249,10 @@ const sorted = getPlaybackData();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     const dateStr = new Date().toISOString().slice(0, 10);
-    a.download = `cema_earthquakes_${dateStr}.geojson`;
+    a.download = `cema_earthquakes_${scopeTag}_${dateStr}.geojson`;
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast(`GeoJSON exported (${state.tableData.length.toLocaleString()} events)`, 'success');
+    showToast(`GeoJSON exported (${state.tableData.length.toLocaleString()} events · ${scopeLabel})`, 'success');
   }
 
   /* ---------- Analytics deck ---------- */
@@ -2136,6 +2167,16 @@ const sorted = getPlaybackData();
     });
     $('btn-export-analytics-pdf').addEventListener('click', exportAnalyticsPdf);
     $('btn-export-analytics-png').addEventListener('click', exportAnalyticsPng);
+
+    /* Table scope toggle */
+    document.querySelectorAll('.table-scope-toggle .scope-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const scope = btn.dataset.scope;
+        if (state.tableScope === scope) return;
+        await loadTableScope(scope);
+        showToast(`Table loaded: ${state.tableData.length.toLocaleString()} events (${scope === 'all' ? 'All Time' : 'Latest 1000'})`, 'success');
+      });
+    });
 
     /* Export */
     $('btn-export-csv').addEventListener('click', exportCSV);

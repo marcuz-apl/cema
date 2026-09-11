@@ -134,6 +134,7 @@ async def list_earthquakes(
     for db_file in get_db(region):
         region_filter = "canada" if "canada" in db_file else "china"
         all_results.extend(query_db(db_file, min_mag, max_mag, limit, region_filter, start_date, end_date, bbox_coords))
+    all_results.sort(key=lambda x: x.get("event_time_utc", ""), reverse=True)
     if limit:
         all_results = all_results[offset:offset + limit]
     return {"region": region or "all", "count": len(all_results), "items": all_results}

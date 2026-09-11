@@ -204,3 +204,31 @@ def test_png_export_filename_bears_tab_and_datetime(page):
     filename = dl.value.suggested_filename
     assert 'Regions' in filename
     assert re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.png$', filename)
+
+
+def test_data_table_scope_toggle_and_exports(page):
+    page.goto("http://localhost:4071", wait_until="networkidle")
+    page.click("#btn-table")
+    page.wait_for_selector("#table-modal.open")
+    assert page.is_visible("#btn-table-scope-1000")
+    assert page.is_visible("#btn-table-scope-all")
+
+    # Verify initial Latest 1000
+    assert "active" in page.query_selector("#btn-table-scope-1000").get_attribute("class")
+
+    # Toggle to All Time
+    page.click("#btn-table-scope-all")
+    page.wait_for_function("document.getElementById('table-count').textContent.includes('10,499') || document.getElementById('table-count').textContent.includes('10499')")
+    assert "active" in page.query_selector("#btn-table-scope-all").get_attribute("class")
+
+    # Export CSV All Time
+    with page.expect_download() as dl_csv:
+        page.click("#btn-export-csv")
+    assert "all_time" in dl_csv.value.suggested_filename
+
+    # Export GeoJSON All Time
+    with page.expect_download() as dl_geo:
+        page.click("#btn-export-geojson")
+    assert "all_time" in dl_geo.value.suggested_filename
+
+    page.click("#table-modal-close")
