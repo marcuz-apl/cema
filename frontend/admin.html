@@ -110,6 +110,15 @@
           </select>
         </div>
         <div class="field">
+          <label>DATA SOURCE</label>
+          <select id="bfSource">
+            <option value="usgs" selected>USGS (Global FDSN)</option>
+            <option value="nrcan">NRCan (Earthquakes Canada)</option>
+            <option value="cenc">CENC (China Networks / CEIC)</option>
+            <option value="auto">Auto (NRCan CA · CENC CN · USGS Fallback)</option>
+          </select>
+        </div>
+        <div class="field">
           <label>MODE</label>
           <select id="bfMode">
             <option value="backfill">Backfill (replace)</option>
@@ -130,7 +139,10 @@
       <div class="bf-progress" id="bfProgressWrap">
         <div class="bf-status-row">
           <span class="bf-status mono" id="bfStatus">IDLE — awaiting command</span>
-          <span class="bf-percent mono" id="bfPercent">0%</span>
+          <div style="display: inline-flex; align-items: center; gap: 8px;">
+            <button id="bfResetBtn" class="btn btn-ghost hidden" style="padding: 2px 8px; font-size: 11px;">Reset Engine</button>
+            <span class="bf-percent mono" id="bfPercent">0%</span>
+          </div>
         </div>
         <div class="progress-track"><div class="progress-fill" id="bfBar" style="width:0%"></div></div>
         <div class="bf-stats">

@@ -136,3 +136,29 @@ def test_admin_export_zip():
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/zip"
     assert len(resp.content) > 1000
+
+
+def test_admin_backfill_reset():
+    resp = client.post("/api/admin/backfill/reset", headers=AUTH)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "ok"
+    assert "reset" in data["message"].lower()
+
+    # Verify status is now idle
+    status_resp = client.get("/api/admin/backfill/status", headers=AUTH)
+    assert status_resp.status_code == 200
+    status_data = status_resp.json()
+    assert status_data["is_running"] is False
+    assert status_data["status"] == "idle"
+
+
+def test_admin_deduplicate_all():
+    resp = client.post("/api/admin/db/deduplicate", headers=AUTH)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "ok"
+    assert "deduplicate" in data
+    assert "canada" in data["deduplicate"]
+    assert "china" in data["deduplicate"]
+    assert isinstance(data["deduplicate"]["canada"]["duplicate_pairs"], int)

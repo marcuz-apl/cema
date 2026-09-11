@@ -438,6 +438,7 @@ def _run_backfill_sync(params):
     min_mag = params.get("min_mag", 3.0)
     chunk_days = params.get("chunk_days", 60)
     replace = params.get("mode", "backfill") == "backfill"
+    source = params.get("source", "usgs")
 
     def on_progress(p):
         with _LOCK:
@@ -454,6 +455,7 @@ def _run_backfill_sync(params):
             min_mag=min_mag,
             chunk_days=chunk_days,
             replace=replace,
+            source=source,
             on_progress=on_progress,
             on_log=_log,
         )
@@ -512,6 +514,7 @@ class BackfillRequest(BaseModel):
     chunk_days: int = Field(ge=7, le=180, default=60)
     regions: str = "all"
     mode: str = "backfill"  # backfill | merge
+    source: str = "usgs"  # usgs | nrcan | cenc | auto
 
 
 class ManualEarthquakeRequest(BaseModel):
@@ -661,13 +664,14 @@ async def admin_start_backfill(req: BackfillRequest, _: bool = Depends(verify_ad
             "end_date": req.end_date,
             "min_mag": req.min_mag,
             "regions": _regions_list(req.regions),
+            "source": req.source,
             "windows_total": 0,
             "windows_done": 0,
             "fetched": 0,
             "inserted": 0,
             "per_region": {},
             "current_window": None,
-            "log": [],
+            "log": [f"$ cema-ops backfill --source {req.source} --{req.mode} {req.start_date}..{req.end_date} M≥{req.min_mag}"],
             "error": None,
             "started_at": datetime.now(timezone.utc).isoformat(),
             "finished_at": None,
@@ -685,6 +689,34 @@ async def admin_start_backfill(req: BackfillRequest, _: bool = Depends(verify_ad
 async def admin_backfill_status(_: bool = Depends(verify_admin_key)):
     with _LOCK:
         return dict(BACKFILL_STATE)
+
+
+@router.post("/backfill/reset")
+async def admin_backfill_reset(_: bool = Depends(verify_admin_key)):
+    with _LOCK:
+        if BACKFILL_STATE.get("is_running"):
+            raise HTTPException(status_code=400, detail="Cannot reset engine while a job is currently running.")
+        BACKFILL_STATE.update({
+            "status": "idle",
+            "is_running": False,
+            "mode": None,
+            "start_date": None,
+            "end_date": None,
+            "min_mag": None,
+            "regions": [],
+            "source": None,
+            "windows_total": 0,
+            "windows_done": 0,
+            "fetched": 0,
+            "inserted": 0,
+            "per_region": {},
+            "current_window": None,
+            "log": ["$ cema ops deck armed — awaiting commands"],
+            "error": None,
+            "started_at": None,
+            "finished_at": None,
+        })
+    return {"status": "ok", "message": "Backfill engine reset to IDLE."}
 
 
 # ---------------------------------------------------------------
@@ -718,11 +750,14 @@ async def admin_vacuum_db(_: bool = Depends(verify_admin_key)):
 
 @router.post("/db/deduplicate")
 async def admin_deduplicate_db(_: bool = Depends(verify_admin_key)):
-    report = {}
-    for region in REGIONS:
-        dups = find_duplicates(f"eq-{region}.db", region)
-        pairs = deduplicate(region)
-        report[region] = {"duplicate_pairs": pairs}
+    def run_dedup():
+        report = {}
+        for region in REGIONS:
+            deleted_count = deduplicate(region)
+            report[region] = {"duplicate_pairs": deleted_count}
+        return report
+
+    report = await asyncio.to_thread(run_dedup)
     return {"status": "ok", "deduplicate": report}
 
 

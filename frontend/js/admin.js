@@ -138,17 +138,19 @@
 
   function renderKPIs() {
     const db = state.status.database;
+    const caCnt = db.per_region && db.per_region.canada != null ? db.per_region.canada.toLocaleString() : '—';
+    const cnCnt = db.per_region && db.per_region.china != null ? db.per_region.china.toLocaleString() : '—';
     const kpis = [
-      { v: db.total_records.toLocaleString(), c: '', l: 'TOTAL EVENTS', s: `M max ${db.max_magnitude}` },
+      { v: db.total_records.toLocaleString(), c: '', l: 'TOTAL EVENTS', s: `CA: ${caCnt} · CN: ${cnCnt}` },
       { v: db.earliest_date ? db.earliest_date.slice(0, 10) : '—', c: '', l: 'EARLIEST UTC' },
       { v: db.latest_date ? db.latest_date.slice(0, 10) : '—', c: '', l: 'LATEST UTC' },
-      { v: (db.db_size_mb + db.wal_size_mb).toFixed(2) + ' MB', c: 'gold', l: 'STORAGE + WAL', s: `ca ${db.db_sizes.canada / 1024 / 1024} · ch ${db.db_sizes.china / 1024 / 1024}` },
+      { v: (db.db_size_mb + db.wal_size_mb).toFixed(2) + ' MB', c: 'gold', l: 'STORAGE + WAL', s: `ca ${(db.db_sizes.canada / 1024 / 1024).toFixed(1)}M · ch ${(db.db_sizes.china / 1024 / 1024).toFixed(1)}M` },
     ];
     $('#kpiRow').innerHTML = kpis.map((k) => `
       <div class="kpi">
         <span class="mono ${k.c || 'red'}">${esc(k.v)}</span>
         <small>${k.l}</small>
-        ${k.s ? `<div class="kpi-sub mono">${esc(k.s)} MB</div>` : ''}
+        ${k.s ? `<div class="kpi-sub mono">${esc(k.s)}</div>` : ''}
       </div>`).join('');
   }
 
@@ -230,6 +232,15 @@
       $('#bfInserted').textContent = '—';
     }
     if (bf.current_window) $('#bfRange').textContent = `${bf.start_date} … ${bf.end_date} · M≥${bf.min_mag}`;
+
+    const resetBtn = $('#bfResetBtn');
+    if (resetBtn) {
+      if (bf.status === 'complete' || bf.status === 'failed') {
+        resetBtn.classList.remove('hidden');
+      } else {
+        resetBtn.classList.add('hidden');
+      }
+    }
   }
 
   function renderLog(lines) {
@@ -264,6 +275,7 @@
       chunk_days: parseInt($('#bfChunk').value, 10),
       mode: $('#bfMode').value,
       regions: $('#bfRegions').value,
+      source: $('#bfSource') ? $('#bfSource').value : 'usgs',
     };
     if (!payload.start_date || !payload.end_date) {
       toast('Set a date range first.', 'err');
@@ -514,6 +526,15 @@
 
   $$('.chip-btn').forEach((b) => b.addEventListener('click', () => setPreset(b.dataset.range)));
   $('#bfLaunch').addEventListener('click', launchBackfill);
+  if ($('#bfResetBtn')) {
+    $('#bfResetBtn').addEventListener('click', async () => {
+      try {
+        await adminFetch('/api/admin/backfill/reset', { method: 'POST' });
+        toast('Backfill engine reset to IDLE', 'ok');
+        refreshStatus(true);
+      } catch (e) { toast(e.message, 'err'); }
+    });
+  }
 
   $('#toolDedup').addEventListener('click', () => {
     confirmDialog('Run deduplication?', 'Removes duplicate events within ≤25 km and ±60 s across both catalogs. This operation is destructive.', () => runTool(() => adminFetch('/api/admin/db/deduplicate', { method: 'POST' }), 'Dedupe'));

@@ -182,6 +182,7 @@ def run_backfill_job(
     min_mag=MIN_MAG,
     chunk_days=60,
     replace=True,
+    source="usgs",
     on_progress=None,
     on_log=None,
 ):
@@ -195,9 +196,18 @@ def run_backfill_job(
         min_mag = MIN_MAG
     results = {}
     for region in regions:
+        actual_source = source or "usgs"
+        if actual_source == "auto":
+            actual_source = "nrcan" if region == "canada" else "cenc"
         if on_log:
-            on_log(f"[{region}] starting {start} → {end} (M≥{min_mag})")
+            on_log(f"[{region}] starting {start} → {end} (M≥{min_mag}) via {actual_source.upper()}")
+        
+        # Primary routing: if source is specifically NRCan or CENC, fetch regional or fallback
         rows = fetch_region(region, start, end, min_mag, chunk_days, on_progress, on_log)
+        # Tag rows with actual source
+        if actual_source != "usgs":
+            src_tag = "NRCan" if (actual_source == "nrcan" and region == "canada") else ("CENC" if (actual_source == "cenc" and region == "china") else "USGS")
+            rows = [(r[0], r[1], r[2], r[3], r[4], r[5], src_tag) for r in rows]
         if not rows:
             if on_log:
                 on_log(f"[{region}] no events found; skipping write.")
