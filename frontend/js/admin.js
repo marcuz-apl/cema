@@ -426,8 +426,11 @@
   /* event wiring */
   $('#authBtn').addEventListener('click', unlock);
   $('#authKey').addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
-  $('#logoutBtn').addEventListener('click', () => {
-    confirmDialog('Exit operations deck?', 'You will need the passkey to return.', () => { forceGate(); toast('Deck locked', 'info'); });
+  $('#publicMapBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    sessionStorage.removeItem(KEY_STORE);
+    state.key = '';
+    window.location.href = '/';
   });
   function openPasskeyModal() {
     $('#curPasskey').value = '';
