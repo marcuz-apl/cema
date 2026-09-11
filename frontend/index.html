@@ -63,15 +63,15 @@
   <!-- Right: action dock -->
   <div class="header-right">
     <div class="header-clock-capsule" id="header-clocks" aria-label="Regional times">
-      <div class="header-clock-item" title="Canada · Mountain Standard Time (MST)">
+      <div class="header-clock-item" id="clock-item-canada" title="Canada · Mountain Standard Time (MST)">
         <span class="clock-flag">🇨🇦</span>
         <span class="clock-tz">MST</span>
         <span class="clock-val mono" id="clock-canada">--:--:--</span>
       </div>
-      <div class="clock-sep"></div>
-      <div class="header-clock-item" title="China · China Standard Time (GMT+8)">
+      <div class="clock-sep" id="clock-sep" style="display:none;"></div>
+      <div class="header-clock-item" id="clock-item-china" style="display:none;" title="China · China Standard Time (CST / GMT+8)">
         <span class="clock-flag">🇨🇳</span>
-        <span class="clock-tz">GMT+8</span>
+        <span class="clock-tz">CST</span>
         <span class="clock-val mono" id="clock-china">--:--:--</span>
       </div>
     </div>
@@ -132,9 +132,6 @@
     <!-- Floating filter bar -->
     <div class="filter-bar" id="filter-bar" role="search">
       <div class="region-toggle" id="region-toggle" aria-label="Region filter">
-        <button class="region-pill" data-region="all" aria-pressed="false">
-          <span class="flag-emoji">🌍</span> All
-        </button>
         <button class="region-pill active" data-region="canada" aria-pressed="true">
           <span class="flag-emoji">🇨🇦</span> Canada
         </button>
@@ -2065,6 +2062,46 @@ const sorted = getPlaybackData();
     showToast(`Sorted by ${state.sortKey === 'mag' ? 'magnitude' : 'time'}`, 'info');
   }
 
+  /* Live Regional Clocks: Canada (MST) & China (CST) — contextual by selected region */
+  function updateHeaderClocks() {
+    const now = new Date();
+    const elCa = $('clock-canada');
+    const elCn = $('clock-china');
+    const itemCa = $('clock-item-canada');
+    const itemCn = $('clock-item-china');
+    const sep = $('clock-sep');
+
+    if (elCa) {
+      elCa.textContent = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'America/Edmonton',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+      }).format(now);
+    }
+    if (elCn) {
+      elCn.textContent = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Shanghai',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+      }).format(now);
+    }
+
+    const reg = state.region || 'canada';
+    if (reg === 'canada') {
+      if (itemCa) itemCa.style.display = 'inline-flex';
+      if (itemCn) itemCn.style.display = 'none';
+      if (sep) sep.style.display = 'none';
+    } else if (reg === 'china') {
+      if (itemCa) itemCa.style.display = 'none';
+      if (itemCn) itemCn.style.display = 'inline-flex';
+      if (sep) sep.style.display = 'none';
+    } else {
+      if (itemCa) itemCa.style.display = 'inline-flex';
+      if (itemCn) itemCn.style.display = 'inline-flex';
+      if (sep) sep.style.display = 'block';
+    }
+  }
+
   /* ---------- Event wiring ---------- */
   function wireEvents() {
     /* Region toggle */
@@ -2078,6 +2115,7 @@ const sorted = getPlaybackData();
       pill.classList.add('active');
       pill.setAttribute('aria-pressed', 'true');
       state.region = pill.dataset.region;
+      updateHeaderClocks();
       flyToRegion(state.region);
       fetchEarthquakes();
       fetchStats();
@@ -2268,26 +2306,6 @@ const sorted = getPlaybackData();
     }
     refreshGeoLayers().catch(() => {});
 
-    /* Live Regional Clocks: Canada (MST) & China (GMT+8) */
-    function updateHeaderClocks() {
-      const now = new Date();
-      const elCa = $('clock-canada');
-      const elCn = $('clock-china');
-      if (elCa) {
-        elCa.textContent = new Intl.DateTimeFormat('en-GB', {
-          timeZone: 'America/Edmonton',
-          hour: '2-digit', minute: '2-digit', second: '2-digit',
-          hour12: false
-        }).format(now);
-      }
-      if (elCn) {
-        elCn.textContent = new Intl.DateTimeFormat('en-GB', {
-          timeZone: 'Asia/Shanghai',
-          hour: '2-digit', minute: '2-digit', second: '2-digit',
-          hour12: false
-        }).format(now);
-      }
-    }
     updateHeaderClocks();
     setInterval(updateHeaderClocks, 1000);
 
