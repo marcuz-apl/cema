@@ -585,7 +585,7 @@
   });
   $('#toolPurge').addEventListener('click', () => {
     const floor = $('#purgeFloor').value;
-    confirmDialog(`Purge noise (M<${floor})?`, `Permanently deletes all events below magnitude ${floor} from both catalogs.`, () => runTool(() => adminFetch(`/api/admin/db/purge-noise?min_mag=${floor}`, { method: 'POST' }), 'Purge'));
+    confirmDialog('⚠️ Warning: Permanent Data Deletion', `WARNING: Data purge will delete the data you specified permanently!\n\nAll earthquakes below magnitude M < ${floor} will be irreversibly removed from both catalogs.`, () => runTool(() => adminFetch(`/api/admin/db/purge-noise?min_mag=${floor}`, { method: 'POST' }), 'Purge'));
   });
   $('#toolCheckpoint').addEventListener('click', () => runTool(() => adminFetch('/api/admin/db/checkpoint-wal', { method: 'POST' }), 'WAL checkpoint'));
   $('#toolVacuum').addEventListener('click', () => {
@@ -727,9 +727,10 @@
         toast('Start date must be on or before end date', 'err');
         return;
       }
+      const regLabel = r === 'all' ? 'Both Catalogs (Canada & China)' : (r === 'canada' ? 'Canada only' : 'China only');
       confirmDialog(
-        `Purge data (${s} → ${e})?`,
-        `Permanently deletes all events from ${s} through ${e} in ${r === 'all' ? 'both catalogs' : r}. This action cannot be undone.`,
+        '⚠️ Warning: Permanent Data Deletion',
+        `WARNING: Data purge will delete the data you specified permanently!\n\nTarget Range: ${s} through ${e}\nTarget Catalogs: ${regLabel}\n\nAll records matching this specification will be permanently deleted from disk. This action cannot be reversed.`,
         async () => {
           try {
             const data = await adminFetch('/api/admin/db/purge-range', {

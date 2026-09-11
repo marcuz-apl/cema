@@ -278,6 +278,13 @@
 <div id="purgeRangeModal" class="modal hidden">
   <div class="modal-card glass" style="max-width: 480px;">
     <h3>Purge Catalog Data</h3>
+    <div class="purge-warning-banner" role="alert">
+      <span class="warning-icon">⚠️</span>
+      <div class="warning-text">
+        <strong>WARNING: PERMANENT DATA LOSS</strong>
+        <span>Data purge will delete the data you specified permanently! This operation is irreversible.</span>
+      </div>
+    </div>
     <p class="modal-msg">Permanently delete earthquakes for a specific year, year range, or date window across catalogs to keep databases lightweight or prepare demo environments.</p>
 
     <div class="field" style="margin-bottom: 12px;">
