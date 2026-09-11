@@ -5,6 +5,19 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260911s] - 2026-09-11
+
+### Changed
+- **MAG Filter Visibility on Mobile**: Reordered mobile filter bar layout (`Country -> MAG Filter -> Time Presets`) ensuring the MAG slider (`min=3.0`) is 100% visible on screen without requiring horizontal scrolling.
+- **Compact Country Selector**: Streamlined mobile region buttons strictly to `CA` and `CN` (removing extraneous emoji glyphs).
+- **Time Presets**: Removed `2020-Now` time range button and condensed `All-Time` to `All` on mobile view.
+- **Shrunk Play Bar & Restored Speed Selector**:
+  - Shrunk the bottom floating playback bar horizontally to a compact, centered pill console (`width: max-content`, ~309px on 390px viewport).
+  - Restored the Speed selector dropdown (`#tl-speed`: `1×` to `32×`) so playback rates are readily selectable on mobile.
+  - Formatted active timeline date (`📅`) and suppressed overlapping scrubber labels for a clean, non-colliding layout.
+
+---
+
 ## [v0.5.0+260911r] - 2026-09-11
 
 ### Added

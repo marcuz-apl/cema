@@ -3720,18 +3720,50 @@ header {
     align-items: center;
   }
 
+  /* Reorder filter-bar items on mobile: Grip -> Country -> MAG Filter -> Time Presets -> Search */
+  .filter-drag-handle {
+    order: 0;
+  }
+
   /* Country selector: compact 2-letter format CA / CN */
   .region-toggle {
+    order: 1;
     flex-shrink: 0;
     gap: 0.18rem;
     padding: 2px;
   }
 
+  /* Slim & short MAG slider: positioned immediately after Country selector so it is 100% visible */
+  .mag-slider-wrap {
+    order: 2;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    padding: 0 0.25rem;
+    margin: 0 0.1rem;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  /* Time pills: compact 1-line strip following MAG slider */
+  .filter-bar .pill-select {
+    order: 3;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    gap: 0.14rem;
+  }
+
+  .search-box {
+    order: 4;
+    flex-shrink: 0;
+  }
+
   .region-toggle .region-pill {
-    padding: 0.2rem 0.4rem;
+    padding: 0.18rem 0.35rem;
     font-size: 0.72rem;
     font-weight: 700;
-    gap: 0.22rem;
+    gap: 0;
   }
 
   .region-label-full {
@@ -3748,14 +3780,22 @@ header {
   .filter-bar .pill-select {
     flex-shrink: 0;
     flex-wrap: nowrap;
-    gap: 0.16rem;
+    gap: 0.14rem;
   }
 
   .filter-bar .pill-select .pill {
-    padding: 0.2rem 0.4rem;
-    font-size: 0.67rem;
+    padding: 0.18rem 0.32rem;
+    font-size: 0.65rem;
     font-weight: 600;
     white-space: nowrap;
+  }
+
+  .pill-full {
+    display: none !important;
+  }
+
+  .pill-short {
+    display: inline !important;
   }
 
   /* Slim & short MAG slider: fits in 1 single line with country selector */
@@ -3847,21 +3887,39 @@ header {
     color: var(--accent);
   }
 
-  /* Timeline playback bar: cleanly anchored at bottom on mobile view */
+  /* Timeline playback bar: shrunk horizontally, centered, compact floating bar */
   .timeline-bar {
     position: absolute;
     top: auto !important;
     bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
-    left: 0.5rem;
-    right: 0.5rem;
-    width: auto;
-    transform: none;
-    padding: 0.38rem 0.6rem;
-    gap: 0.5rem;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100% - 1rem);
+    padding: 0.22rem 0.45rem;
+    gap: 0.32rem;
     z-index: 25;
     box-shadow: 0 4px 22px rgba(0, 0, 0, 0.5);
     overflow-x: auto;
     scrollbar-width: none;
+    align-items: center;
+    border-radius: var(--radius-pill);
+  }
+
+  .timeline-controls {
+    gap: 0.18rem;
+    flex-shrink: 0;
+  }
+
+  .timeline-btn {
+    width: 25px;
+    height: 25px;
+  }
+
+  .timeline-btn.play {
+    width: 29px;
+    height: 29px;
   }
 
   /* Layer controls & legend docked above bottom play bar */
@@ -3886,12 +3944,25 @@ header {
   }
 
   .timeline-date {
-    font-size: 0.68rem;
-    padding: 0.25rem 0.45rem;
+    font-size: 0.64rem;
+    padding: 0.16rem 0.32rem;
+    gap: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .timeline-date svg {
+    width: 12px;
+    height: 12px;
   }
 
   .scrubber-wrap {
-    min-width: 90px;
+    min-width: 55px;
+    width: 75px;
+    flex: 0 1 75px;
+  }
+
+  .scrubber-labels {
+    display: none;
   }
 
   /* Modals full height on mobile */
@@ -3932,9 +4003,20 @@ header {
 
   .timeline-window-slider .slider-label { min-width: 0; }
 
-  /* Timeline player hidden on smallest? Keep but compact */
+  /* Speed selector: visible and compact on mobile */
   .speed-select {
-    display: none;
+    display: inline-block !important;
+    padding: 0.15rem 0.3rem;
+    font-size: 0.64rem;
+    font-weight: 700;
+    height: 25px;
+    line-height: 1;
+    background: var(--hover-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--fg);
+    flex-shrink: 0;
+    cursor: pointer;
   }
 
   .data-table th:nth-child(5),
@@ -3989,7 +4071,18 @@ header {
   }
 
   .timeline-date {
-    display: none;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 0.12rem 0.3rem;
+    background: var(--hover-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--fg);
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .analytics-grid {
