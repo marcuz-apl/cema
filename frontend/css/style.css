@@ -1013,6 +1013,14 @@ header {
   white-space: nowrap;
 }
 
+.pill-desktop {
+  display: inline;
+}
+
+.pill-mobile {
+  display: none !important;
+}
+
 .pill-select .pill:hover {
   color: var(--fg);
   background: var(--hover-bg);
@@ -3720,7 +3728,7 @@ header {
     align-items: center;
   }
 
-  /* Reorder filter-bar items on mobile: Grip -> Country -> MAG Filter -> Time Presets -> Search */
+  /* Reorder filter-bar items on mobile: Grip -> Country -> Time Presets -> MAG Slider -> Search */
   .filter-drag-handle {
     order: 0;
   }
@@ -3729,29 +3737,37 @@ header {
   .region-toggle {
     order: 1;
     flex-shrink: 0;
-    gap: 0.18rem;
+    gap: 0.16rem;
     padding: 2px;
   }
 
-  /* Slim & short MAG slider: positioned immediately after Country selector so it is 100% visible */
-  .mag-slider-wrap {
+  /* Time pills: compact 1-line strip on left of MAG slider */
+  .filter-bar .pill-select {
     order: 2;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    gap: 0.12rem;
+  }
+
+  .pill-desktop {
+    display: none !important;
+  }
+
+  .pill-mobile {
+    display: inline !important;
+  }
+
+  /* Slim & short MAG slider: positioned on the right of Time filters */
+  .mag-slider-wrap {
+    order: 3;
     display: inline-flex !important;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.22rem;
     flex-shrink: 0;
-    padding: 0 0.25rem;
+    padding: 0 0.22rem;
     margin: 0 0.1rem;
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
-  }
-
-  /* Time pills: compact 1-line strip following MAG slider */
-  .filter-bar .pill-select {
-    order: 3;
-    flex-shrink: 0;
-    flex-wrap: nowrap;
-    gap: 0.14rem;
   }
 
   .search-box {
@@ -3830,19 +3846,19 @@ header {
     border-radius: 4px;
   }
 
-  /* Compact search box */
+  /* Search box: extra space allocated on mobile */
   .search-box {
     flex-shrink: 0;
   }
 
   .search-box input {
-    width: 70px;
+    width: 85px;
     padding: 0.2rem 0.4rem 0.2rem 1.45rem;
     font-size: 0.7rem;
   }
 
   .search-box input:focus {
-    width: 95px;
+    width: 110px;
   }
 
   .filter-bar::-webkit-scrollbar {
@@ -3880,7 +3896,7 @@ header {
     color: var(--accent);
   }
 
-  /* Timeline playback bar: shrunk horizontally, centered, compact floating bar */
+  /* Bottom Row on Mobile: LAYERS (left), Play bar (compact center), MAG (right) all landed on very bottom */
   .timeline-bar {
     position: absolute;
     top: auto !important;
@@ -3889,72 +3905,171 @@ header {
     right: auto;
     transform: translateX(-50%);
     width: max-content;
-    max-width: calc(100% - 1rem);
-    padding: 0.22rem 0.45rem;
-    gap: 0.32rem;
+    padding: 0.12rem 0.24rem;
+    gap: 0.15rem;
     z-index: 25;
     box-shadow: 0 4px 22px rgba(0, 0, 0, 0.5);
-    overflow-x: auto;
-    scrollbar-width: none;
+    overflow-x: visible;
     align-items: center;
     border-radius: var(--radius-pill);
   }
 
   .timeline-controls {
-    gap: 0.18rem;
+    gap: 0.08rem;
     flex-shrink: 0;
   }
 
   .timeline-btn {
-    width: 25px;
-    height: 25px;
+    width: 17px;
+    height: 17px;
+    padding: 0;
+  }
+
+  .timeline-btn svg {
+    width: 9px;
+    height: 9px;
   }
 
   .timeline-btn.play {
-    width: 29px;
-    height: 29px;
+    width: 21px;
+    height: 21px;
   }
 
-  /* Layer controls & legend docked above bottom play bar */
-  .layer-controls {
-    bottom: calc(3.65rem + env(safe-area-inset-bottom, 0px)) !important;
-    left: 0.5rem;
-    min-width: 135px;
-    padding: 0.4rem 0.55rem;
-    z-index: 24;
+  .timeline-btn.play svg {
+    width: 10px;
+    height: 10px;
   }
 
-  .map-legend {
-    bottom: calc(3.65rem + env(safe-area-inset-bottom, 0px)) !important;
-    right: 0.5rem;
-    min-width: 130px;
-    padding: 0.35rem 0.55rem;
-    z-index: 24;
+  .scrubber-wrap {
+    min-width: 28px;
+    width: 34px;
+    flex: 0 0 34px;
   }
 
-  .timeline-bar::-webkit-scrollbar {
+  .scrubber {
+    height: 3px;
+  }
+
+  .scrubber-labels {
     display: none;
   }
 
   .timeline-date {
-    font-size: 0.64rem;
-    padding: 0.16rem 0.32rem;
-    gap: 0.2rem;
+    font-size: 0.52rem;
+    font-weight: 700;
+    padding: 0.06rem 0.14rem;
+    gap: 0.1rem;
     flex-shrink: 0;
   }
 
   .timeline-date svg {
-    width: 12px;
+    width: 8px;
+    height: 8px;
+  }
+
+  /* Layer controls: landed on very bottom of screen, smaller font size */
+  .layer-controls {
+    bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    left: 0.35rem;
+    min-width: 84px;
+    max-width: 92px;
+    padding: 0.18rem 0.28rem;
+    z-index: 24;
+    border-radius: var(--radius-sm);
+  }
+
+  .layer-controls-title {
+    font-size: 0.55rem;
+    font-weight: 800;
+    gap: 0.15rem;
+    letter-spacing: 0.03em;
+  }
+
+  .layer-controls-title svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  .layer-controls-collapse {
+    width: 15px;
+    height: 15px;
+  }
+
+  .layer-controls-collapse svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  .toggle-item {
+    padding: 0.06rem 0.02rem;
+    gap: 0.15rem;
+  }
+
+  .toggle-label {
+    font-size: 0.53rem;
+    font-weight: 600;
+  }
+
+  .toggle-switch {
+    width: 20px;
     height: 12px;
   }
 
-  .scrubber-wrap {
-    min-width: 55px;
-    width: 75px;
-    flex: 0 1 75px;
+  .toggle-switch .track::after {
+    top: 1.5px;
+    left: 1.5px;
+    width: 9px;
+    height: 9px;
   }
 
-  .scrubber-labels {
+  .toggle-switch input:checked + .track::after {
+    transform: translateX(8px);
+  }
+
+  /* MAG Legend: landed on very bottom of screen, smaller font size */
+  .map-legend {
+    bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    right: 0.35rem;
+    min-width: 70px;
+    max-width: 78px;
+    padding: 0.18rem 0.28rem;
+    z-index: 24;
+    border-radius: var(--radius-sm);
+  }
+
+  .map-legend-title {
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+  }
+
+  .map-legend-collapse {
+    width: 15px;
+    height: 15px;
+  }
+
+  .map-legend-collapse svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  .legend-row {
+    font-size: 0.52rem;
+    gap: 0.18rem;
+    padding: 0.02rem 0;
+  }
+
+  .legend-swatch {
+    width: 9px;
+    height: 6px;
+  }
+
+  .legend-range {
+    font-size: 0.52rem;
+    font-weight: 700;
+  }
+
+  .timeline-bar::-webkit-scrollbar {
     display: none;
   }
 
@@ -3996,13 +4111,13 @@ header {
 
   .timeline-window-slider .slider-label { min-width: 0; }
 
-  /* Speed selector: visible and compact on mobile */
+  /* Speed selector: visible and ultra-compact on mobile */
   .speed-select {
     display: inline-block !important;
-    padding: 0.15rem 0.3rem;
-    font-size: 0.64rem;
+    padding: 0.04rem 0.14rem;
+    font-size: 0.52rem;
     font-weight: 700;
-    height: 25px;
+    height: 18px;
     line-height: 1;
     background: var(--hover-bg);
     border: 1px solid var(--border);
@@ -4033,8 +4148,8 @@ header {
   }
 
   .filter-bar .pill-select .pill {
-    padding: 0.26rem 0.5rem;
-    font-size: 0.68rem;
+    padding: 0.18rem 0.32rem;
+    font-size: 0.65rem;
   }
 
   .region-toggle .region-pill {
@@ -4052,30 +4167,34 @@ header {
   }
 
   .search-box input {
-    width: 58px;
-  }
-
-  .search-box input:focus {
     width: 85px;
   }
 
+  .search-box input:focus {
+    width: 115px;
+  }
+
   .legend-row {
-    font-size: 0.68rem;
+    font-size: 0.52rem;
   }
 
   .timeline-date {
     display: inline-flex !important;
     align-items: center;
-    gap: 0.2rem;
-    font-size: 0.62rem;
+    gap: 0.1rem;
+    font-size: 0.50rem;
     font-weight: 700;
-    padding: 0.12rem 0.3rem;
+    padding: 0.04rem 0.12rem;
     background: var(--hover-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--fg);
     white-space: nowrap;
     flex-shrink: 0;
+  }
+
+  .timeline-date svg {
+    display: none;
   }
 
   .analytics-grid {

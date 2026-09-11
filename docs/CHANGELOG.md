@@ -5,6 +5,20 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260911u] - 2026-09-11
+
+### Changed
+- **Mobile Filter Bar Order & Search Expansion**:
+  - Reordered mobile filter bar items to `Grip -> Country (CA/CN) -> Time Presets -> MAG Slider -> Search`.
+  - Configured `All` on mobile view and `All-Time` on desktop view via `.pill-mobile` / `.pill-desktop`, freeing up horizontal space for the region search bar.
+  - Expanded search bar input width on mobile to 85px (expands to 115px on focus).
+- **Bottom HUD Row Layout & Smaller Typography**:
+  - Landed `LAYERS` (bottom-left), `Play bar` (bottom-center), and `MAG` (bottom-right) all on the very bottom row (`bottom: 0.5rem`).
+  - Reduced font sizes for `LAYERS` and `MAG` bars to compact micro-typography (~9px / 0.55rem) with slim toggles and color swatches.
+  - Compacted the Play bar (~181px) to guarantee zero overlap across all mobile viewports while preserving step controls, play/pause, scrubber, playback date, and Speed selector (`1×`–`32×`).
+
+---
+
 ## [v0.5.0+260911t] - 2026-09-11
 
 ### Fixed
