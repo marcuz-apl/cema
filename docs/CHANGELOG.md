@@ -5,6 +5,18 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260911r] - 2026-09-11
+
+### Added
+- **Draggable Filter Bar**: Introduced tactile 6-dot drag grip handle (`#filter-bar-drag`) enabling users to position the floating filter bar anywhere in the map viewport without obscuring cartography or controls.
+- **Leaflet Zoom Control Separation**: Filter bar on mobile now leaves dedicated right margin (`max-width: calc(100% - 3.8rem)`), preventing overlap with Leaflet zoom-in and zoom-out buttons.
+
+### Changed
+- **Feed Toggle Icon Restoration**: Restored the seismic feed toggle (`#sidebar-toggle`) to the classic 3-line Burger icon (`☰`).
+- **Quick Actions Menu Icon**: Converted `#btn-mobile-menu` to standard 3-dot vertical kebab menu style (`⋮`), clearly distinguishing primary navigation from operational quick actions (Audio, Analytics, Table, Theme, Fullscreen).
+
+---
+
 ## [v0.5.0+260911q] - 2026-09-11
 
 ### Changed

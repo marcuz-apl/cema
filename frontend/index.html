@@ -19,8 +19,10 @@
   <!-- Left: mobile burger + brand -->
   <div class="header-left">
     <button class="icon-btn mobile-only" id="sidebar-toggle" data-tip="Feed" aria-label="Toggle seismic feed">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M2 12h3l2-6 3 12 3-9 2 6h3l2-3 2 3h2"/>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
       </svg>
     </button>
     <div class="brand">
@@ -99,11 +101,11 @@
     <button class="icon-btn" id="btn-theme" data-tip="Theme" aria-label="Toggle dark / light theme">
       <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </button>
-    <button class="icon-btn mobile-burger-btn" id="btn-mobile-menu" data-tip="Menu" aria-label="Open mobile menu">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-        <line x1="4" y1="6" x2="20" y2="6"/>
-        <line x1="4" y1="12" x2="20" y2="12"/>
-        <line x1="4" y1="18" x2="20" y2="18"/>
+    <button class="icon-btn mobile-burger-btn mobile-menu-btn" id="btn-mobile-menu" data-tip="Menu" aria-label="Open mobile menu">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+        <circle cx="12" cy="5" r="2.2"/>
+        <circle cx="12" cy="12" r="2.2"/>
+        <circle cx="12" cy="19" r="2.2"/>
       </svg>
     </button>
   </div>
@@ -138,8 +140,19 @@
     <div id="map" aria-label="Interactive seismic map"></div>
     <div class="map-spinner" id="map-spinner" aria-hidden="true"></div>
 
-    <!-- Floating filter bar -->
+    <!-- Floating filter bar (draggable) -->
     <div class="filter-bar" id="filter-bar" role="search">
+      <div class="filter-drag-handle" id="filter-bar-drag" aria-label="Drag filter bar" title="Drag filter bar">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+          <circle cx="8" cy="6" r="1.8"/>
+          <circle cx="16" cy="6" r="1.8"/>
+          <circle cx="8" cy="12" r="1.8"/>
+          <circle cx="16" cy="12" r="1.8"/>
+          <circle cx="8" cy="18" r="1.8"/>
+          <circle cx="16" cy="18" r="1.8"/>
+        </svg>
+      </div>
+
       <div class="region-toggle" id="region-toggle" aria-label="Region filter">
         <button class="region-pill active" data-region="canada" aria-pressed="true" title="Canada">
           <span class="flag-emoji">🇨🇦</span><span class="region-label-full"> Canada</span><span class="region-label-short"> CA</span>
@@ -1288,7 +1301,8 @@ const sorted = getPlaybackData();
   /* ---------- Widget containment ---------- */
   const WIDGET_ANCHOR = {
     'layer-widget': { left: '0', bottom: '0' },
-    'legend-widget': { right: '0', bottom: '0' }
+    'legend-widget': { right: '0', bottom: '0' },
+    'filter-bar': { left: '0.5rem', top: '0.5rem' }
   };
   function clearWidgetInline(widget) {
     widget.style.left = '';
@@ -1320,16 +1334,20 @@ const sorted = getPlaybackData();
   /* ---------- Draggable widgets ---------- */
   function makeDraggable(widgetId, dragHandleId) {
     const widget = $(widgetId);
-    const handle = $(dragHandleId);
+    const handle = $(dragHandleId) || widget;
+    if (!widget || !handle) return;
     let startX, startY, origX, origY, dragging = false;
 
     function onDown(e) {
-      if (e.target.closest('button, input, select, label')) return;
+      if (e.target.closest('button, input, select, label, .pill-select, .mag-slider-wrap, .search-box')) return;
       dragging = true;
       const ev = e.touches ? e.touches[0] : e;
       startX = ev.clientX; startY = ev.clientY;
+      const host = document.querySelector('.map-viewport');
+      const hb = host ? host.getBoundingClientRect() : { left: 0, top: 0 };
       const rect = widget.getBoundingClientRect();
-      origX = rect.left; origY = rect.top;
+      origX = rect.left - hb.left;
+      origY = rect.top - hb.top;
       widget.classList.add('dragging');
       widget.style.left = origX + 'px';
       widget.style.top = origY + 'px';
@@ -1337,12 +1355,13 @@ const sorted = getPlaybackData();
       widget.style.bottom = 'auto';
       widget.style.transform = 'none';
       document.addEventListener('mousemove', onMove);
-      document.addEventListener('touchmove', onMove, { passive: true });
+      document.addEventListener('touchmove', onMove, { passive: false });
       document.addEventListener('mouseup', onUp);
       document.addEventListener('touchend', onUp);
     }
     function onMove(e) {
       if (!dragging) return;
+      if (e.cancelable) e.preventDefault();
       const ev = e.touches ? e.touches[0] : e;
       const dx = ev.clientX - startX;
       const dy = ev.clientY - startY;
@@ -1350,6 +1369,7 @@ const sorted = getPlaybackData();
       widget.style.top = (origY + dy) + 'px';
     }
     function onUp() {
+      if (!dragging) return;
       dragging = false;
       widget.classList.remove('dragging');
       keepWidgetInside(widget);
@@ -1360,6 +1380,10 @@ const sorted = getPlaybackData();
     }
     handle.addEventListener('mousedown', onDown);
     handle.addEventListener('touchstart', onDown, { passive: true });
+    if (handle !== widget) {
+      widget.addEventListener('mousedown', onDown);
+      widget.addEventListener('touchstart', onDown, { passive: true });
+    }
   }
 
   /* ---------- Modals ---------- */
@@ -2685,6 +2709,7 @@ const sorted = getPlaybackData();
     bindCollapse('legend-widget-collapse', 'legend-widget');
 
     /* Draggable widgets */
+    makeDraggable('filter-bar', 'filter-bar-drag');
     makeDraggable('layer-widget', 'layer-widget-drag');
     makeDraggable('legend-widget', 'legend-widget-drag');
 

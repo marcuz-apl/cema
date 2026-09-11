@@ -953,6 +953,38 @@ header {
   transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
+.filter-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 26px;
+  color: var(--fg-faint);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.filter-drag-handle:hover,
+.filter-bar.dragging .filter-drag-handle {
+  color: var(--accent);
+  background: var(--hover-bg);
+}
+
+.filter-drag-handle:active,
+.filter-bar.dragging .filter-drag-handle {
+  cursor: grabbing;
+}
+
+.filter-bar.dragging {
+  cursor: grabbing !important;
+  box-shadow: var(--shadow-lg), 0 0 0 2px rgba(var(--accent-rgb), 0.25);
+  user-select: none;
+}
+
 .filter-bar.hidden {
   opacity: 0;
   pointer-events: none;
@@ -3307,7 +3339,8 @@ header {
 /* ------------------------------------------------------------
    20b. Mobile Menu Drawer & Controls
    ------------------------------------------------------------ */
-.mobile-burger-btn {
+.mobile-burger-btn,
+.mobile-menu-btn {
   display: none !important;
 }
 
@@ -3671,12 +3704,12 @@ header {
     display: none;
   }
 
-  /* Filter bar: single slim 1-line layout */
+  /* Filter bar: single slim 1-line layout (draggable, leaves space for Leaflet zoom buttons) */
   .filter-bar {
     top: 0.5rem;
     left: 0.5rem;
-    right: 0.5rem;
-    max-width: calc(100% - 1rem);
+    right: auto;
+    max-width: calc(100% - 3.8rem);
     height: 42px;
     padding: 0.22rem 0.45rem;
     gap: 0.35rem;
@@ -3788,13 +3821,14 @@ header {
   }
 
   /* Header: 5 desktop icons hidden, single touch-friendly Burger menu button shown */
-  .header-right .icon-btn:not(.mobile-burger-btn),
+  .header-right .icon-btn:not(.mobile-burger-btn):not(.mobile-menu-btn),
   .header-right .separator,
   .header-right .header-clock-capsule {
     display: none !important;
   }
 
-  .mobile-burger-btn {
+  .mobile-burger-btn,
+  .mobile-menu-btn {
     display: inline-flex !important;
     width: 40px;
     height: 40px;
