@@ -435,7 +435,7 @@ def _run_backfill_sync(params):
     regions = _regions_list(params.get("regions"))
     start = date.fromisoformat(params["start_date"])
     end = date.fromisoformat(params["end_date"])
-    min_mag = params.get("min_mag", 3.0)
+    min_mag = params.get("min_mag", 2.5)
     chunk_days = params.get("chunk_days", 60)
     replace = params.get("mode", "backfill") == "backfill"
     source = params.get("source", "usgs")
@@ -510,7 +510,7 @@ class ChangePasswordRequest(BaseModel):
 class BackfillRequest(BaseModel):
     start_date: str
     end_date: str
-    min_mag: float = Field(ge=1.0, le=10.0, default=3.0)
+    min_mag: float = Field(ge=2.5, le=10.0, default=2.5)
     chunk_days: int = Field(ge=7, le=180, default=60)
     regions: str = "all"
     mode: str = "backfill"  # backfill | merge
