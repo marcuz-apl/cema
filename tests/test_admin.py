@@ -183,3 +183,48 @@ def test_admin_backfill_year_2000_request_validation():
         assert data["status"] in ("started", "busy")
         # Cleanly reset backfill engine back to idle
         client.post("/api/admin/backfill/reset", headers=AUTH)
+
+def test_admin_purge_range_endpoint():
+    # Insert a temporary test event in 2008
+    temp_event = {
+        "region": "canada",
+        "event_time_utc": "2008-05-12T14:28:00Z",
+        "latitude": 51.5,
+        "longitude": -120.5,
+        "depth_km": 10.0,
+        "magnitude": 4.0,
+        "source": "OPERATOR",
+    }
+    create_resp = client.post("/api/admin/earthquakes", json=temp_event, headers=AUTH)
+    assert create_resp.status_code == 200
+
+    # Purge year 2008
+    payload = {
+        "start_date": "2008-01-01",
+        "end_date": "2008-12-31",
+        "regions": "canada",
+    }
+    purge_resp = client.post("/api/admin/db/purge-range", json=payload, headers=AUTH)
+    assert purge_resp.status_code == 200
+    data = purge_resp.json()
+    assert data["status"] == "ok"
+    assert data["total_deleted"] >= 1
+    assert "canada" in data["deleted"]
+
+    # Verify invalid date format returns 400
+    bad_payload = {
+        "start_date": "not-a-date",
+        "end_date": "2008-12-31",
+        "regions": "all",
+    }
+    bad_resp = client.post("/api/admin/db/purge-range", json=bad_payload, headers=AUTH)
+    assert bad_resp.status_code == 400
+
+    # Verify start > end returns 400
+    reversed_payload = {
+        "start_date": "2008-12-31",
+        "end_date": "2008-01-01",
+        "regions": "all",
+    }
+    rev_resp = client.post("/api/admin/db/purge-range", json=reversed_payload, headers=AUTH)
+    assert rev_resp.status_code == 400

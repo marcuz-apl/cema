@@ -176,6 +176,7 @@
       <div class="tele-tools">
         <button id="toolDedup" class="btn btn-ghost">⇕ Deduplicate (≤25km / ±60s)</button>
         <button id="toolPurge" class="btn btn-ghost">✕ Purge noise M &lt; <select id="purgeFloor"><option value="3.0" selected>3.0</option><option value="3.5">3.5</option><option value="4.0">4.0</option></select></button>
+        <button id="toolPurgeRange" class="btn btn-ghost">✂ Purge Year / Range…</button>
         <button id="toolCheckpoint" class="btn btn-ghost">▤ Flush WAL</button>
         <button id="toolVacuum" class="btn btn-ghost">⚙ Vacuum</button>
         <button id="toolExport" class="btn btn-ghost">⬇ Export Catalog</button>
@@ -272,6 +273,54 @@
 </div>
 
 <!-- Confirm modal -->
+
+<!-- Purge Year / Range Modal -->
+<div id="purgeRangeModal" class="modal hidden">
+  <div class="modal-card glass" style="max-width: 480px;">
+    <h3>Purge Catalog Data</h3>
+    <p class="modal-msg">Permanently delete earthquakes for a specific year, year range, or date window across catalogs to keep databases lightweight or prepare demo environments.</p>
+
+    <div class="field" style="margin-bottom: 12px;">
+      <label>QUICK PRESETS</label>
+      <div class="presets" style="gap: 6px; margin-top: 4px;">
+        <button class="chip-btn" data-purge-range="2000-2003">2000–2003</button>
+        <button class="chip-btn" data-purge-range="2008">Year 2008</button>
+        <button class="chip-btn" data-purge-range="2010">Year 2010</button>
+        <button class="chip-btn" data-purge-range="pre-2020">&lt; 2020</button>
+      </div>
+    </div>
+
+    <div class="reg-grid" style="margin-bottom: 12px;">
+      <div class="field">
+        <label>START DATE</label>
+        <input type="date" id="purgeStart" min="1970-01-01" value="2000-01-01">
+      </div>
+      <div class="field">
+        <label>END DATE</label>
+        <input type="date" id="purgeEnd" min="1970-01-01" value="2003-12-31">
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom: 14px;">
+      <label>TARGET REGION</label>
+      <select id="purgeRegion">
+        <option value="all">Both Catalogs (Canada &amp; China)</option>
+        <option value="canada">Canada only (eq-canada.db)</option>
+        <option value="china">China only (eq-china.db)</option>
+      </select>
+    </div>
+
+    <div id="purgePreviewInfo" class="mono" style="font-size: 11px; color: var(--accent); margin-bottom: 16px; padding: 8px 12px; background: rgba(var(--bg-glass-rgb), 0.5); border-radius: 8px; border: 1px solid var(--line-strong);">
+      Target: 2000-01-01 → 2003-12-31 (Year range 2000–2003)
+    </div>
+
+    <div class="modal-actions">
+      <button id="purgeRangeCancel" class="btn btn-ghost">Cancel</button>
+      <button id="purgeRangeSubmit" class="btn btn-accent" style="background: #e74c3c; border-color: #c0392b; color:#fff;">Purge Events</button>
+    </div>
+  </div>
+</div>
+
 <div id="confirmModal" class="modal hidden">
   <div class="modal-card glass">
     <h3 id="confirmTitle">Confirm</h3>

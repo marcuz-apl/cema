@@ -650,7 +650,107 @@
     if (confirmCb) { const cb = confirmCb; confirmCb = null; cb(); }
   });
   [['confirmModal', null], ['registerModal', null], ['passkeyModal', null]].forEach(([modalId]) => {
-    $('#' + modalId).addEventListener('click', (e) => { if (e.target.id === modalId) e.target.classList.add('hidden'); });
+      /* ── purge date range modal ─────────────────── */
+  function updatePurgePreview() {
+    const s = $('#purgeStart').value;
+    const e = $('#purgeEnd').value;
+    const r = $('#purgeRegion').value;
+    const info = $('#purgePreviewInfo');
+    if (!info) return;
+    if (!s || !e) {
+      info.textContent = 'Select start and end dates';
+      return;
+    }
+    const regLabel = r === 'all' ? 'Both Catalogs' : (r === 'canada' ? 'Canada only' : 'China only');
+    info.textContent = `Target: ${s} → ${e} (${regLabel})`;
+  }
+
+  function setPurgePreset(preset) {
+    if (preset === '2000-2003') {
+      $('#purgeStart').value = '2000-01-01';
+      $('#purgeEnd').value = '2003-12-31';
+    } else if (preset === '2008') {
+      $('#purgeStart').value = '2008-01-01';
+      $('#purgeEnd').value = '2008-12-31';
+    } else if (preset === '2010') {
+      $('#purgeStart').value = '2010-01-01';
+      $('#purgeEnd').value = '2010-12-31';
+    } else if (preset === 'pre-2020') {
+      $('#purgeStart').value = '1970-01-01';
+      $('#purgeEnd').value = '2019-12-31';
+    }
+    $$('[data-purge-range]').forEach(b => b.classList.toggle('active', b.dataset.purgeRange === preset));
+    updatePurgePreview();
+  }
+
+  if ($('#toolPurgeRange')) {
+    $('#toolPurgeRange').addEventListener('click', () => {
+      $('#purgeRangeModal').classList.remove('hidden');
+      updatePurgePreview();
+    });
+  }
+
+  if ($('#purgeRangeCancel')) {
+    $('#purgeRangeCancel').addEventListener('click', () => {
+      $('#purgeRangeModal').classList.add('hidden');
+    });
+  }
+
+  $$('[data-purge-range]').forEach(b => {
+    b.addEventListener('click', () => setPurgePreset(b.dataset.purgeRange));
+  });
+
+  ['purgeStart', 'purgeEnd', 'purgeRegion'].forEach(id => {
+    const el = $('#' + id);
+    if (el) {
+      el.addEventListener('input', () => {
+        $$('[data-purge-range]').forEach(b => b.classList.remove('active'));
+        updatePurgePreview();
+      });
+      el.addEventListener('change', () => {
+        $$('[data-purge-range]').forEach(b => b.classList.remove('active'));
+        updatePurgePreview();
+      });
+    }
+  });
+
+  if ($('#purgeRangeSubmit')) {
+    $('#purgeRangeSubmit').addEventListener('click', () => {
+      const s = $('#purgeStart').value;
+      const e = $('#purgeEnd').value;
+      const r = $('#purgeRegion').value;
+      if (!s || !e) {
+        toast('Please specify both start and end dates', 'err');
+        return;
+      }
+      if (s > e) {
+        toast('Start date must be on or before end date', 'err');
+        return;
+      }
+      confirmDialog(
+        `Purge data (${s} → ${e})?`,
+        `Permanently deletes all events from ${s} through ${e} in ${r === 'all' ? 'both catalogs' : r}. This action cannot be undone.`,
+        async () => {
+          try {
+            const data = await adminFetch('/api/admin/db/purge-range', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ start_date: s, end_date: e, regions: r }),
+            });
+            $('#purgeRangeModal').classList.add('hidden');
+            const caDel = data.deleted.canada || 0;
+            const cnDel = data.deleted.china || 0;
+            toast(`Purged ${data.total_deleted} events (${caDel} CA · ${cnDel} CN)`, 'ok');
+            refreshStatus(true);
+          } catch (err) {
+            toast(err.message, 'err');
+          }
+        }
+      );
+    });
+  }
+
+  $('#' + modalId).addEventListener('click', (e) => { if (e.target.id === modalId) e.target.classList.add('hidden'); });
   });
 
   /* init */

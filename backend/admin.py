@@ -346,6 +346,40 @@ def purge_noise(min_mag: float):
     return {"status": "ok", "floor": min_mag, "deleted": results, "total_deleted": sum(results.values())}
 
 
+def purge_date_range(start_date: str, end_date: str, regions: str = "all"):
+    """Delete all events within [start_date, end_date] across specified catalog(s)."""
+    targets = _regions_list(regions)
+    start_iso = f"{start_date}T00:00:00"
+    end_iso = f"{end_date}T23:59:59.999"
+    results = {}
+    for region in targets:
+        path = os.path.join(DB_DIR, f"eq-{region}.db")
+        if not os.path.exists(path):
+            continue
+        conn = sqlite3.connect(path)
+        row = conn.execute(
+            "SELECT COUNT(*) FROM earthquakes WHERE region = ? AND event_time_utc >= ? AND event_time_utc <= ?",
+            (region, start_iso, end_iso),
+        ).fetchone()
+        count = row[0] if row else 0
+        conn.execute(
+            "DELETE FROM earthquakes WHERE region = ? AND event_time_utc >= ? AND event_time_utc <= ?",
+            (region, start_iso, end_iso),
+        )
+        conn.commit()
+        conn.close()
+        results[region] = count
+    return {
+        "status": "ok",
+        "start_date": start_date,
+        "end_date": end_date,
+        "regions": targets,
+        "deleted": results,
+        "total_deleted": sum(results.values()),
+    }
+
+
+
 _HEALTH_CACHE = {"data": None, "ts": 0}
 _HEALTH_LOCK = threading.Lock()
 
@@ -506,6 +540,12 @@ def _run_live_sync_sync(regions):
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(min_length=6)
+
+
+class PurgeRangeRequest(BaseModel):
+    start_date: str
+    end_date: str
+    regions: str = "all"
 
 
 class BackfillRequest(BaseModel):
@@ -768,6 +808,24 @@ async def admin_purge_noise(
     _: bool = Depends(verify_admin_key),
 ):
     return purge_noise(min_mag)
+
+
+@router.post("/db/purge-range")
+async def admin_purge_range(
+    req: PurgeRangeRequest,
+    _: bool = Depends(verify_admin_key),
+):
+    try:
+        s = date.fromisoformat(req.start_date)
+        e = date.fromisoformat(req.end_date)
+        if s > e:
+            raise HTTPException(status_code=400, detail="start_date must be before or equal to end_date.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid date format: {exc}")
+
+    res = purge_date_range(req.start_date, req.end_date, req.regions)
+    _log(f"purge range {req.start_date}..{req.end_date} [{', '.join(res['regions'])}] → {res['total_deleted']} deleted")
+    return res
 
 
 # ---------------------------------------------------------------
