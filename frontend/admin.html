@@ -167,7 +167,7 @@
 
       <div class="tele-tools">
         <button id="toolDedup" class="btn btn-ghost">⇕ Deduplicate (≤25km / ±60s)</button>
-        <button id="toolPurge" class="btn btn-ghost">✕ Purge noise M&lt;<select id="purgeFloor"><option>2.0</option><option selected>2.5</option><option>3.0</option></select></button>
+        <button id="toolPurge" class="btn btn-ghost">✕ Purge noise M &lt; <select id="purgeFloor"><option value="3.0" selected>3.0</option><option value="3.5">3.5</option><option value="4.0">4.0</option></select></button>
         <button id="toolCheckpoint" class="btn btn-ghost">▤ Flush WAL</button>
         <button id="toolVacuum" class="btn btn-ghost">⚙ Vacuum</button>
         <button id="toolExport" class="btn btn-ghost">⬇ Export Catalog</button>
@@ -218,9 +218,11 @@
         </table>
       </div>
       <div class="pagination">
-        <button id="pgPrev" class="btn btn-ghost">‹ Prev</button>
+        <button id="pgFirst" class="btn btn-ghost" title="First page">« First</button>
+        <button id="pgPrev" class="btn btn-ghost" title="Previous page">‹ Prev</button>
         <span id="pgInfo" class="mono">0 – 0 of 0</span>
-        <button id="pgNext" class="btn btn-ghost">Next ›</button>
+        <button id="pgNext" class="btn btn-ghost" title="Next page">Next ›</button>
+        <button id="pgLast" class="btn btn-ghost" title="Last page">Last »</button>
       </div>
     </section>
 

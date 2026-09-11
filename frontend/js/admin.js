@@ -184,6 +184,9 @@
       renderDensity();
       $('#eventsTotal').textContent = `${st.database.total_records.toLocaleString()} records · dual catalog`;
       renderBackfillStub(st.backfill_state, st.sync_state);
+      if (st.backfill_state && st.backfill_state.is_running && !state.bfPoll) {
+        startBackfillPoll();
+      }
       if (!quiet) toast('Telemetry refreshed', 'ok');
     } catch (e) { if (!quiet) toast(e.message, 'err'); }
   }
@@ -252,15 +255,17 @@
 
   function startBackfillPoll() {
     clearInterval(state.bfPoll);
+    let wasRunning = false;
     state.bfPoll = setInterval(async () => {
       try {
         const bf = await adminFetch('/api/admin/backfill/status');
+        if (bf.is_running) wasRunning = true;
         renderBackfillStub(bf, null);
         renderLog(bf.log);
         if (!bf.is_running) {
           clearInterval(state.bfPoll);
           state.bfPoll = null;
-          if (bf.status === 'complete') toast('Backfill job complete', 'ok');
+          if (wasRunning && bf.status === 'complete') toast('Backfill job complete', 'ok');
           refreshStatus(true);
         }
       } catch (e) { clearInterval(state.bfPoll); state.bfPoll = null; }
@@ -390,8 +395,10 @@
     const lo = state.events.total ? offset + 1 : 0;
     const hi = Math.min(offset + limit, state.events.total);
     $('#pgInfo').textContent = `${lo} – ${hi} of ${state.events.total.toLocaleString()}`;
+    if ($('#pgFirst')) $('#pgFirst').disabled = offset <= 0;
     $('#pgPrev').disabled = offset <= 0;
     $('#pgNext').disabled = offset + limit >= state.events.total;
+    if ($('#pgLast')) $('#pgLast').disabled = offset + limit >= state.events.total;
   }
 
   /* ── register event ────────────────────────── */
@@ -429,7 +436,6 @@
     setInterval(tickClock, 1000);
     refreshStatus(false);
     loadEvents(true);
-    startBackfillPoll();
     if (syncInterval) clearInterval(syncInterval);
     syncInterval = setInterval(() => { if (state.key) adminFetch('/api/admin/status').then(() => {}).catch(() => {}); }, 30000);
   }
@@ -556,8 +562,23 @@
     loadEvents(true);
   });
   $('#mfSearch').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadEvents(true); });
+  if ($('#pgFirst')) {
+    $('#pgFirst').addEventListener('click', () => { state.events.offset = 0; loadEvents(); });
+  }
   $('#pgPrev').addEventListener('click', () => { state.events.offset = Math.max(0, state.events.offset - state.events.limit); loadEvents(); });
   $('#pgNext').addEventListener('click', () => { state.events.offset += state.events.limit; loadEvents(); });
+  if ($('#pgLast')) {
+    $('#pgLast').addEventListener('click', () => {
+      const lastOffset = Math.floor(Math.max(0, state.events.total - 1) / state.events.limit) * state.events.limit;
+      state.events.offset = lastOffset;
+      loadEvents();
+    });
+  }
+
+  if ($('#purgeFloor')) {
+    $('#purgeFloor').addEventListener('click', (e) => e.stopPropagation());
+    $('#purgeFloor').addEventListener('change', (e) => e.stopPropagation());
+  }
 
   $('#eventsBody').addEventListener('click', (e) => {
     const btn = e.target.closest('.row-del');
