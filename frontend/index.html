@@ -256,6 +256,9 @@
         <button class="btn" id="btn-export-csv">
           <span class="btn-icon">⬇</span> Export CSV
         </button>
+        <button class="btn" id="btn-export-geojson">
+          <span class="btn-icon">🌐</span> Export GeoJSON
+        </button>
         <button class="modal-close" id="table-modal-close" aria-label="Close">
           <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
@@ -1175,6 +1178,52 @@ const sorted = getPlaybackData();
     showToast('CSV exported', 'success');
   }
 
+  function exportGeoJSON() {
+    if (!state.tableData.length) {
+      showToast('No data to export', 'warn');
+      return;
+    }
+    const featureCollection = {
+      type: 'FeatureCollection',
+      metadata: {
+        generated: new Date().toISOString(),
+        title: 'CEMA Earthquake Catalog Export',
+        count: state.tableData.length,
+        system: 'CEMA - Canada / China Earthquake Monitoring & Alert System'
+      },
+      features: state.tableData.map(e => ({
+        type: 'Feature',
+        id: e.id,
+        geometry: {
+          type: 'Point',
+          coordinates: [
+            parseFloat(Number(e.longitude).toFixed(5)),
+            parseFloat(Number(e.latitude).toFixed(5)),
+            e.depth_km != null ? parseFloat(Number(e.depth_km).toFixed(2)) : 0
+          ]
+        },
+        properties: {
+          id: e.id,
+          region: e.region,
+          event_time_utc: e.event_time_utc,
+          magnitude: Number(e.magnitude),
+          depth_km: e.depth_km != null ? Number(e.depth_km) : null,
+          source: e.source,
+          province: e.province || null,
+          place: e.place || null
+        }
+      }))
+    };
+    const blob = new Blob([JSON.stringify(featureCollection, null, 2)], { type: 'application/geo+json;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.download = `cema_earthquakes_${dateStr}.geojson`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast(`GeoJSON exported (${state.tableData.length.toLocaleString()} events)`, 'success');
+  }
+
   /* ---------- Analytics deck ---------- */
   const AN_WINDOW = 36; // months in the timeline window
 
@@ -1804,6 +1853,13 @@ const sorted = getPlaybackData();
     if (actions) actions.remove();
     const scope = clone.querySelector('.analytics-scope-toggle');
     if (scope) scope.remove();
+    // Replace emoji flag symbols in clone with textual badges to avoid font baseline distortion in html2canvas
+    clone.querySelectorAll('.region-name-ext, .stat-row, .share-name').forEach(el => {
+      el.innerHTML = el.innerHTML
+        .replace(/🇨🇦/g, '<span class="flag-badge flag-ca">CA</span>')
+        .replace(/🇨🇳/g, '<span class="flag-badge flag-cn">CN</span>');
+    });
+
     const footer = document.createElement('div');
     footer.className = 'bulletin-footer';
     const nowUtc = new Date().toISOString().replace('T', ' ').substring(0, 16) + ' UTC';
@@ -1821,13 +1877,25 @@ const sorted = getPlaybackData();
         width: 1414, height: 1000, scale: 2, backgroundColor: '#ffffff',
         useCORS: true, logging: false, windowWidth: 1414, windowHeight: 1000, x: 0, y: 0
       });
+
+      // Active tab name and formatted date+time
+      const activeTabBtn = document.querySelector('.analytics-tab-btn.active');
+      const tabKey = (activeTabBtn?.dataset?.tab || state.analyticsTab || 'overview').toLowerCase();
+      const tabName = tabKey.charAt(0).toUpperCase() + tabKey.slice(1);
+
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+      const filename = `CEMA_Seismic_Bulletin_${tabName}_${dateStr}_${timeStr}.png`;
+
       const link = document.createElement('a');
-      link.download = `CEMA_Seismic_Bulletin_${new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19)}.png`;
+      link.download = filename;
       link.href = canvas.toDataURL('image/png');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showToast('PNG bulletin exported.', 'success');
+      showToast(`PNG bulletin exported (${tabName}).`, 'success');
     } catch (err) {
       console.error('PNG export failed:', err);
       showToast(`PNG export error: ${err.message}`, 'error');
@@ -2071,6 +2139,8 @@ const sorted = getPlaybackData();
 
     /* Export */
     $('btn-export-csv').addEventListener('click', exportCSV);
+    const geojsonBtn = $('btn-export-geojson');
+    if (geojsonBtn) geojsonBtn.addEventListener('click', exportGeoJSON);
 
     /* Table sort */
     document.querySelectorAll('#data-table th[data-sort]').forEach(th => {

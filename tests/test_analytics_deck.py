@@ -166,3 +166,41 @@ def test_energy_tab_cards_equal_height(page):
         return Math.abs(left.getBoundingClientRect().height - right.getBoundingClientRect().height);
     }""")
     assert diff <= 1, f"Energy tab left card and right side heights differ by {diff}px (expected equal)"
+
+
+def test_data_table_export_geojson(page):
+    page.goto('http://localhost:4071', wait_until='networkidle')
+    page.click('#btn-table')
+    page.wait_for_selector('#table-modal.open')
+    assert page.is_visible('#btn-export-geojson')
+    page.click('#table-modal-close')
+
+
+def test_all_tabs_have_identical_height(page):
+    page.set_viewport_size({'width': 1440, 'height': 900})
+    _open_deck(page)
+    pane_heights = []
+    panel_heights = []
+    for tab in TABS:
+        page.click(f'.analytics-tab-btn[data-tab="{tab}"]')
+        page.wait_for_timeout(200)
+        h = page.evaluate(f'''() => {{
+            const pane = document.getElementById('tab-analytics-{tab}');
+            const panel = document.getElementById('analytics-modal-panel');
+            return {{ pane: pane.clientHeight, panel: panel.clientHeight }};
+        }}''')
+        pane_heights.append(h['pane'])
+        panel_heights.append(h['panel'])
+    assert max(pane_heights) - min(pane_heights) == 0, f"Pane heights differ: {pane_heights}"
+    assert max(panel_heights) - min(panel_heights) == 0, f"Panel heights differ: {panel_heights}"
+
+
+def test_png_export_filename_bears_tab_and_datetime(page):
+    _open_deck(page)
+    page.click('.analytics-tab-btn[data-tab="regions"]')
+    page.wait_for_timeout(250)
+    with page.expect_download() as dl:
+        page.click('#btn-export-analytics-png')
+    filename = dl.value.suggested_filename
+    assert 'Regions' in filename
+    assert re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.png$', filename)
