@@ -5,6 +5,15 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260911q] - 2026-09-11
+
+### Changed
+- **2-Letter Mobile Country Selector (CA / CN)**: Replaced full "Canada" and "China" labels with compact "CA" and "CN" (`<span class="region-label-short">`) on mobile screens (`≤768px`), preserving full labels on desktop.
+- **Single-Line Mobile Filter Bar**: Enforced `flex-wrap: nowrap !important` with height `42px` and smooth horizontal swipe carousel on mobile.
+- **Slim Mobile MAG Slider**: Restored and slimmed down the magnitude slider (`48px` track) into the unified single line on mobile screens instead of hiding it.
+
+---
+
 ## [v0.5.0+260911p] - 2026-09-11
 
 ### Added

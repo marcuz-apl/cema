@@ -1021,6 +1021,14 @@ header {
   font-size: 0.78rem;
 }
 
+.region-label-full {
+  display: inline;
+}
+
+.region-label-short {
+  display: none;
+}
+
 .region-toggle .region-pill:hover {
   color: var(--fg);
 }
@@ -3663,17 +3671,112 @@ header {
     display: none;
   }
 
-  /* Filter bar horizontal scroll */
+  /* Filter bar: single slim 1-line layout */
   .filter-bar {
-    top: 0.7rem;
-    left: 0.7rem;
-    right: 0.7rem;
-    max-width: calc(100% - 1.4rem);
-    padding: 0.45rem 0.55rem;
-    gap: 0.4rem;
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+    max-width: calc(100% - 1rem);
+    height: 42px;
+    padding: 0.22rem 0.45rem;
+    gap: 0.35rem;
+    flex-wrap: nowrap !important;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    align-items: center;
+  }
+
+  /* Country selector: compact 2-letter format CA / CN */
+  .region-toggle {
+    flex-shrink: 0;
+    gap: 0.18rem;
+    padding: 2px;
+  }
+
+  .region-toggle .region-pill {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    gap: 0.22rem;
+  }
+
+  .region-label-full {
+    display: none !important;
+  }
+
+  .region-label-short {
+    display: inline !important;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  /* Time pills: compact 1-line strip */
+  .filter-bar .pill-select {
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    gap: 0.16rem;
+  }
+
+  .filter-bar .pill-select .pill {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.67rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Slim & short MAG slider: fits in 1 single line with country selector */
+  .mag-slider-wrap {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    padding: 0 0.15rem;
+  }
+
+  .mag-slider-wrap .slider-label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--fg-dim);
+    letter-spacing: 0.02em;
+  }
+
+  .mag-slider-wrap input[type="range"] {
+    width: 48px !important;
+    height: 3px;
+  }
+
+  .mag-slider-wrap input[type="range"]::-webkit-slider-thumb {
+    width: 13px;
+    height: 13px;
+  }
+
+  .mag-slider-wrap input[type="range"]::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+  }
+
+  .mag-slider-value {
+    min-width: 25px;
+    padding: 0.1rem 0.2rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    border-radius: 4px;
+  }
+
+  /* Compact search box */
+  .search-box {
+    flex-shrink: 0;
+  }
+
+  .search-box input {
+    width: 70px;
+    padding: 0.2rem 0.4rem 0.2rem 1.45rem;
+    font-size: 0.7rem;
+  }
+
+  .search-box input:focus {
+    width: 95px;
   }
 
   .filter-bar::-webkit-scrollbar {
@@ -3830,17 +3933,21 @@ header {
     font-size: 0.68rem;
   }
 
+  /* MAG slider remains visible on slim 1-line layout */
   .mag-slider-wrap {
-    display: none;
+    display: inline-flex !important;
   }
 
   .search-box {
-    flex: 1;
+    flex-shrink: 0;
   }
 
-  .search-box input,
+  .search-box input {
+    width: 58px;
+  }
+
   .search-box input:focus {
-    width: 100%;
+    width: 85px;
   }
 
   .legend-row {
