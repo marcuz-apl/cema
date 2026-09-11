@@ -111,21 +111,28 @@
   function renderProviders() {
     const st = state.status;
     const wrap = $('#providers');
-    wrap.innerHTML = Object.values(st.providers).map((p) => `
+    if (!st || !st.providers) return;
+    const canonicalKeys = ['nrcan', 'cenc', 'usgs'];
+    const providersList = canonicalKeys
+      .filter((k) => st.providers[k])
+      .map((k) => st.providers[k]);
+    const list = providersList.length ? providersList : Object.values(st.providers);
+
+    wrap.innerHTML = list.map((p) => `
       <div class="provider-card">
         <div class="pc-head">
           <div>
             <div class="pc-name">${esc(p.name)}</div>
-            <div class="pc-tag">${esc(p.source)}</div>
+            <div class="pc-tag">${esc(p.role || p.source)}</div>
           </div>
           <span class="pc-status ${p.reachable ? 'ok' : 'down'}">${p.reachable ? '◉ ONLINE' : '◉ DOWN'}</span>
         </div>
         <div class="pc-metrics">
-          <div class="pc-metric"><span class="mono">${p.catalog_count.toLocaleString()}</span><small>CATALOG</small></div>
+          <div class="pc-metric"><span class="mono">${p.catalog_count != null ? p.catalog_count.toLocaleString() : '—'}</span><small>CATALOG</small></div>
           <div class="pc-metric"><span class="mono">${p.latency_ms != null ? p.latency_ms + 'ms' : '—'}</span><small>PING</small></div>
-          <div class="pc-metric"><span class="mono">${p.status}</span><small>HEALTH</small></div>
+          <div class="pc-metric"><span class="mono">${esc((p.status || '').toUpperCase())}</span><small>HEALTH</small></div>
         </div>
-        <div class="pc-aoi">AOI ${p.aoi.join(', ')}</div>
+        <div class="pc-aoi">${esc(p.source)} · ${Array.isArray(p.aoi) ? 'AOI ' + p.aoi.join(', ') : esc(p.aoi || '')}</div>
       </div>`).join('');
   }
 
@@ -422,15 +429,78 @@
   $('#logoutBtn').addEventListener('click', () => {
     confirmDialog('Exit operations deck?', 'You will need the passkey to return.', () => { forceGate(); toast('Deck locked', 'info'); });
   });
-  $('#pwdBtn').addEventListener('click', () => {
-    const current = prompt('Current passkey:');
-    if (current == null) return;
-    const next = prompt('New passkey (min 6 chars):');
-    if (next == null || next.length < 6) return;
+  function openPasskeyModal() {
+    $('#curPasskey').value = '';
+    $('#newPasskey').value = '';
+    $('#confirmPasskey').value = '';
+    $('#passkeyError').textContent = '';
+    $('#passkeyError').classList.add('hidden');
+    $('#passkeyModal').classList.remove('hidden');
+    setTimeout(() => $('#curPasskey').focus(), 50);
+  }
+
+  function closePasskeyModal() {
+    $('#passkeyModal').classList.add('hidden');
+  }
+
+  function submitPasskeyChange() {
+    const cur = $('#curPasskey').value.trim();
+    const next = $('#newPasskey').value.trim();
+    const conf = $('#confirmPasskey').value.trim();
+    const errEl = $('#passkeyError');
+
+    errEl.classList.add('hidden');
+    errEl.textContent = '';
+
+    if (!cur) {
+      errEl.textContent = 'Please enter your current passkey.';
+      errEl.classList.remove('hidden');
+      $('#curPasskey').focus();
+      return;
+    }
+    if (!next || next.length < 6) {
+      errEl.textContent = 'New passkey must be at least 6 characters.';
+      errEl.classList.remove('hidden');
+      $('#newPasskey').focus();
+      return;
+    }
+    if (next !== conf) {
+      errEl.textContent = 'New passkeys do not match.';
+      errEl.classList.remove('hidden');
+      $('#confirmPasskey').focus();
+      return;
+    }
+
+    const saveBtn = $('#passkeySave');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Updating...';
+
     adminFetch('/api/admin/change-password', {
       method: 'POST',
-      body: JSON.stringify({ current_password: current, new_password: next }),
-    }).then((r) => toast(r.message, 'ok')).catch((e) => toast(e.message, 'err'));
+      body: JSON.stringify({ current_password: cur, new_password: next }),
+    })
+      .then((r) => {
+        toast(r.message || 'Passkey updated successfully', 'ok');
+        closePasskeyModal();
+        state.key = next;
+        sessionStorage.setItem(KEY_STORE, next);
+      })
+      .catch((e) => {
+        errEl.textContent = e.message || 'Failed to update passkey';
+        errEl.classList.remove('hidden');
+      })
+      .finally(() => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Update Passkey';
+      });
+  }
+
+  $('#pwdBtn').addEventListener('click', openPasskeyModal);
+  $('#passkeyCancel').addEventListener('click', closePasskeyModal);
+  $('#passkeySave').addEventListener('click', submitPasskeyChange);
+  $('#passkeyModal').addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePasskeyModal();
+    if (e.key === 'Enter') submitPasskeyChange();
   });
   $('#themeBtn').addEventListener('click', () => {
     const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
@@ -496,7 +566,7 @@
     $('#confirmModal').classList.add('hidden');
     if (confirmCb) { const cb = confirmCb; confirmCb = null; cb(); }
   });
-  [['confirmModal', null], ['registerModal', null]].forEach(([modalId]) => {
+  [['confirmModal', null], ['registerModal', null], ['passkeyModal', null]].forEach(([modalId]) => {
     $('#' + modalId).addEventListener('click', (e) => { if (e.target.id === modalId) e.target.classList.add('hidden'); });
   });
 

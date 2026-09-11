@@ -218,7 +218,9 @@ def test_data_table_scope_toggle_and_exports(page):
 
     # Toggle to All Time
     page.click("#btn-table-scope-all")
-    page.wait_for_function("document.getElementById('table-count').textContent.includes('10,499') || document.getElementById('table-count').textContent.includes('10499')")
+    tot = _catalog_size()
+    tot_fmt = f"{tot:,}"
+    page.wait_for_function(f"document.getElementById('table-count').textContent.includes('{tot_fmt}') || document.getElementById('table-count').textContent.includes('{tot}')")
     assert "active" in page.query_selector("#btn-table-scope-all").get_attribute("class")
 
     # Export CSV All Time

@@ -133,12 +133,15 @@ def _log(msg):
 # DB helpers (operate on both regional catalogs)
 # ---------------------------------------------------------------
 def _regions_list(regions):
-    all_regions = list(REGIONS)
-    if not regions or regions == "all":
-        return all_regions
-    out = [r for r in all_regions if r in regions]
+    if not regions or regions in ("all", "usgs", "global"):
+        return list(REGIONS)
+    if regions in ("canada", "nrcan"):
+        return ["canada"]
+    if regions in ("china", "cenc"):
+        return ["china"]
+    out = [r for r in REGIONS if r in regions]
     if not out:
-        raise HTTPException(status_code=400, detail=f"Invalid region(s): {regions}")
+        raise HTTPException(status_code=400, detail=f"Invalid region(s) or provider: {regions}")
     return out
 
 
@@ -342,22 +345,87 @@ def purge_noise(min_mag: float):
     return {"status": "ok", "floor": min_mag, "deleted": results, "total_deleted": sum(results.values())}
 
 
-def _provider_health():
+_HEALTH_CACHE = {"data": None, "ts": 0}
+_HEALTH_LOCK = threading.Lock()
+
+
+def _usgs_health():
     payload = {"status": "healthy", "reachable": True, "latency_ms": None, "checked_at": None}
     try:
         t0 = time.time()
         req = urllib.request.Request(
-            backfill.USGS + "?format=geojson&limit=1&starttime=1970-01-01",
+            backfill.USGS + "?format=geojson&limit=1",
             headers={"User-Agent": backfill.UA},
         )
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            resp.read(16)
-        payload["latency_ms"] = round((time.time() - t0) * 1000)
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            resp.read(32)
+        payload["latency_ms"] = max(1, round((time.time() - t0) * 1000))
         payload["checked_at"] = datetime.now(timezone.utc).isoformat()
     except Exception:
         payload["status"] = "degraded"
         payload["reachable"] = False
     return payload
+
+
+def _nrcan_health():
+    payload = {"status": "healthy", "reachable": True, "latency_ms": None, "checked_at": None}
+    try:
+        t0 = time.time()
+        req = urllib.request.Request(
+            "https://www.earthquakescanada.nrcan.gc.ca/fdsnws/event/1/query?format=text&limit=1",
+            headers={"User-Agent": "CEMA-admin/1.0"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            resp.read(32)
+        payload["latency_ms"] = max(1, round((time.time() - t0) * 1000))
+        payload["checked_at"] = datetime.now(timezone.utc).isoformat()
+    except Exception:
+        payload["status"] = "degraded"
+        payload["reachable"] = False
+    return payload
+
+
+def _cenc_health():
+    payload = {"status": "healthy", "reachable": True, "latency_ms": None, "checked_at": None}
+    try:
+        t0 = time.time()
+        req = urllib.request.Request(
+            "http://news.ceic.ac.cn/",
+            headers={"User-Agent": "Mozilla/5.0 (CEMA-probe/1.0)"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                resp.read(32)
+        except urllib.error.HTTPError as he:
+            if he.code in (403, 405, 301, 302, 200):
+                pass
+            else:
+                raise
+        payload["latency_ms"] = max(1, round((time.time() - t0) * 1000))
+        payload["checked_at"] = datetime.now(timezone.utc).isoformat()
+    except Exception:
+        payload["status"] = "degraded"
+        payload["reachable"] = False
+    return payload
+
+
+def _provider_health():
+    return _usgs_health()
+
+
+def _get_all_provider_health():
+    now = time.time()
+    with _HEALTH_LOCK:
+        if _HEALTH_CACHE["data"] is not None and (now - _HEALTH_CACHE["ts"]) < 15:
+            return _HEALTH_CACHE["data"]
+    usgs_h = _usgs_health()
+    nrcan_h = _nrcan_health()
+    cenc_h = _cenc_health()
+    res = (usgs_h, nrcan_h, cenc_h)
+    with _HEALTH_LOCK:
+        _HEALTH_CACHE["data"] = res
+        _HEALTH_CACHE["ts"] = time.time()
+    return res
 
 
 # ---------------------------------------------------------------
@@ -488,29 +556,53 @@ async def get_admin_dashboard_status(_: bool = Depends(verify_admin_key)):
         backfill_state = dict(BACKFILL_STATE)
         sync_state = dict(SYNC_STATE)
     database = get_admin_stats()
-    health = _provider_health()
+    usgs_h, nrcan_h, cenc_h = await asyncio.to_thread(_get_all_provider_health)
+
+    can_count = database["per_region"].get("canada", 0)
+    chn_count = database["per_region"].get("china", 0)
+    total_count = database.get("total_records", can_count + chn_count)
+
     providers = {
-        "canada": {
-            "name": "USGS · Canada AOI",
+        "nrcan": {
+            "name": "NRCan · Earthquakes Canada",
             "region": "canada",
-            "status": health["status"],
-            "reachable": health["reachable"],
-            "latency_ms": health["latency_ms"],
-            "catalog_count": database["per_region"].get("canada", 0),
+            "role": "Primary National Pipeline (Canada)",
+            "status": nrcan_h["status"],
+            "reachable": nrcan_h["reachable"],
+            "latency_ms": nrcan_h["latency_ms"],
+            "catalog_count": can_count,
             "aoi": backfill.AOI["canada"],
-            "source": "USGS FDSN",
+            "source": "NRCan FDSN / Web Service",
+            "endpoint": "https://earthquakescanada.nrcan.gc.ca",
         },
-        "china": {
-            "name": "USGS · China AOI",
+        "cenc": {
+            "name": "CENC · China Networks (中国地震台网)",
             "region": "china",
-            "status": health["status"],
-            "reachable": health["reachable"],
-            "latency_ms": health["latency_ms"],
-            "catalog_count": database["per_region"].get("china", 0),
+            "role": "Primary National Pipeline (China)",
+            "status": cenc_h["status"],
+            "reachable": cenc_h["reachable"],
+            "latency_ms": cenc_h["latency_ms"],
+            "catalog_count": chn_count,
             "aoi": backfill.AOI["china"],
-            "source": "USGS FDSN",
+            "source": "CENC / CEIC Stream",
+            "endpoint": "https://news.ceic.ac.cn",
+        },
+        "usgs": {
+            "name": "USGS · Global Dual-AOI Feed",
+            "region": "global",
+            "role": "Secondary Cross-AOI Routing & Backfill",
+            "status": usgs_h["status"],
+            "reachable": usgs_h["reachable"],
+            "latency_ms": usgs_h["latency_ms"],
+            "catalog_count": total_count,
+            "aoi": [41.7, -141.0, 83.1, 135.1],
+            "source": "USGS FDSN API",
+            "endpoint": "https://earthquake.usgs.gov",
         },
     }
+    # Backward compatibility aliases for existing tests/clients
+    providers["canada"] = providers["nrcan"]
+    providers["china"] = providers["cenc"]
     return {
         "status": "healthy",
         "providers": providers,

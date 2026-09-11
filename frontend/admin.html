@@ -38,16 +38,16 @@
       <div class="brand-mark sm">CEMA</div>
       <div class="dh-title">
         <div class="dh-name">Operations Deck <span class="dh-dot">·</span> <span id="verChip" class="chip">v0.5.0</span></div>
-        <div class="dh-sub">Canada · China Earthquake Monitor — USGS Live Catalog</div>
+        <div class="dh-sub">Canada · China Earthquake Monitor — NRCan · CENC · USGS Pipelines</div>
       </div>
     </div>
     <div class="dh-right">
       <div class="live-badge" id="liveBadge"><span class="live-dot"></span>LIVE</div>
       <div class="clock" id="clock">--:--:--</div>
-      <button id="themeBtn" class="icon-btn" title="Toggle theme">◐</button>
       <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">Public Map ↗</a>
       <button id="pwdBtn" class="btn btn-ghost">Passkey</button>
       <button id="logoutBtn" class="btn btn-ghost danger-ghost">Exit</button>
+      <button id="themeBtn" class="icon-btn" title="Toggle theme" style="margin-left: 4px;">◐</button>
     </div>
   </header>
 
@@ -59,7 +59,7 @@
         <span class="bc-label">TOPOLOGY</span>
         <span class="bc-pill">CAN · AOI 41.7,-141.0 → 83.1,-52.6</span>
         <span class="bc-pill">CHN · AOI 18.0,73.5 → 53.6,135.1</span>
-        <span class="bc-pill">SRC · USGS FDSN (keyless)</span>
+        <span class="bc-pill">SRC · NRCan + CENC + USGS FDSN</span>
         <span class="bc-pill">STORE · SQLite WAL ×2</span>
       </div>
       <button id="syncAllBtn" class="btn btn-primary">⟳ Re-sync live (7d)</button>
@@ -185,7 +185,7 @@
       </div>
       <div class="mod-filters">
         <select id="mfRegion"><option value="">Region · all</option><option value="canada">Canada</option><option value="china">China</option></select>
-        <select id="mfSource"><option value="">Source · all</option><option value="USGS">USGS</option><option value="OPERATOR">OPERATOR</option></select>
+        <select id="mfSource"><option value="">Source · all</option><option value="NRCan">NRCan</option><option value="CENC">CENC</option><option value="USGS">USGS</option><option value="OPERATOR">OPERATOR</option></select>
         <select id="mfMinMag"><option value="">Mag ≥ · all</option><option value="1.0">1.0</option><option value="2.0">2.0</option><option value="3.0">3.0</option><option value="4.5">4.5</option><option value="6.0">6.0</option></select>
         <input id="mfSearch" type="search" placeholder="search source / region / time / coords">
         <button id="mfApply" class="btn btn-ghost">Apply</button>
@@ -226,6 +226,31 @@
 </div>
 
 <div id="toasts" class="toasts" aria-live="polite"></div>
+
+<!-- Passkey modal -->
+<div id="passkeyModal" class="modal hidden">
+  <div class="modal-card glass" style="max-width: 440px;">
+    <h3>Change Operations Passkey</h3>
+    <p class="modal-msg">Update deck access credentials. The new passkey must contain at least 6 characters.</p>
+    <div class="field" style="margin-bottom: 12px;">
+      <label>CURRENT PASSKEY</label>
+      <input type="password" id="curPasskey" placeholder="Enter current passkey" autocomplete="current-password">
+    </div>
+    <div class="field" style="margin-bottom: 12px;">
+      <label>NEW PASSKEY (MIN 6 CHARACTERS)</label>
+      <input type="password" id="newPasskey" placeholder="Enter new passkey" autocomplete="new-password">
+    </div>
+    <div class="field" style="margin-bottom: 14px;">
+      <label>CONFIRM NEW PASSKEY</label>
+      <input type="password" id="confirmPasskey" placeholder="Repeat new passkey" autocomplete="new-password">
+    </div>
+    <div id="passkeyError" class="auth-error hidden" style="margin-bottom: 14px;"></div>
+    <div class="modal-actions">
+      <button id="passkeyCancel" class="btn btn-ghost">Cancel</button>
+      <button id="passkeySave" class="btn btn-primary">Update Passkey</button>
+    </div>
+  </div>
+</div>
 
 <!-- Confirm modal -->
 <div id="confirmModal" class="modal hidden">

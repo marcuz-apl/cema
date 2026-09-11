@@ -40,7 +40,11 @@ def test_admin_status():
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "healthy"
-    assert set(data["providers"]) == {"canada", "china"}
+    assert {"nrcan", "cenc", "usgs"}.issubset(set(data["providers"]))
+    assert data["providers"]["usgs"]["reachable"] is True
+    assert data["providers"]["usgs"]["status"] == "healthy"
+    assert data["providers"]["nrcan"]["reachable"] is True
+    assert data["providers"]["cenc"]["reachable"] is True
     assert data["database"]["total_records"] > 0
     assert "BY" in data["database"]["by_year"] or data["database"]["by_year_list"]
 
