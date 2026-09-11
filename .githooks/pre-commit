@@ -2,9 +2,22 @@
 HOOKDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$HOOKDIR/versionlib.sh"
 
-old=$(read_version)
-validate_identifier "$old"
-new=$(next_identifier "$old" "$(utc_yymmdd)") || exit 1
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
+  head_ver=$(git show "HEAD:$VERSION_FILE" 2>/dev/null | tr -d '[:space:]')
+else
+  head_ver=""
+fi
+
+staged_ver=$(read_version)
+
+if git diff --cached --name-only | grep -qx "$VERSION_FILE" && [ -n "$head_ver" ] && [ "$staged_ver" != "$head_ver" ]; then
+  validate_identifier "$staged_ver"
+  exit 0
+fi
+
+base_ver=${head_ver:-$staged_ver}
+validate_identifier "$base_ver"
+new=$(next_identifier "$base_ver" "$(utc_yymmdd)") || exit 1
 
 printf '%s\n' "$new" > "$VERSION_FILE"
 git add -- "$VERSION_FILE"
