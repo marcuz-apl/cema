@@ -297,6 +297,79 @@ header {
 }
 
 /* ------------------------------------------------------------
+   6b. Header Regional Clocks (Canada MST & China GMT+8)
+   ------------------------------------------------------------ */
+.header-clock-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.26rem 0.65rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin-right: 0.35rem;
+  user-select: none;
+}
+
+.header-clock-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.clock-flag {
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+.clock-tz {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--fg-dim);
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--fg-dim) 14%, transparent);
+}
+
+.clock-val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: 0.02em;
+}
+
+.clock-sep {
+  width: 1px;
+  height: 13px;
+  background: var(--border);
+}
+
+@media (max-width: 900px) {
+  .header-clock-capsule {
+    padding: 0.2rem 0.45rem;
+    gap: 0.3rem;
+    margin-right: 0.2rem;
+  }
+  .clock-tz {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-clock-capsule {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------
    6. KPI capsule
    ------------------------------------------------------------ */
 .kpi-capsule {
