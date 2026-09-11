@@ -75,7 +75,7 @@
         <span class="clock-val mono" id="clock-china">--:--:--</span>
       </div>
     </div>
-    <button class="icon-btn desktop-only" id="btn-sort" data-tip="Audio On/Off" aria-label="Toggle audio signal">
+    <button class="icon-btn" id="btn-sort" data-tip="Audio Muted (Click to enable)" aria-label="Toggle seismic audio sonification">
       <span id="audio-icon">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
@@ -569,6 +569,7 @@
     playback: { idx: 0, speed: 32, tickId: 0, snapshot: [] },
     timeRange: [],
     audioEnabled: false,
+    knownEventIds: new Set(),
     analyticsScope: 'archive',
     analyticsTab: 'overview'
   };
@@ -581,6 +582,133 @@
   const feedCount = $('feed-count');
   const tableBody = $('table-body');
   const tablePagination = $('table-pagination');
+
+  
+  /* ---------- Seismic Sonification Engine (Web Audio API) ---------- */
+  let audioCtx = null;
+  let masterLimiter = null;
+  let lastAudioTrigger = 0;
+
+  function getAudioCtx() {
+    if (!audioCtx) {
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtxClass) return null;
+      audioCtx = new AudioCtxClass();
+      masterLimiter = audioCtx.createDynamicsCompressor();
+      masterLimiter.threshold.setValueAtTime(-14, audioCtx.currentTime);
+      masterLimiter.knee.setValueAtTime(10, audioCtx.currentTime);
+      masterLimiter.ratio.setValueAtTime(8, audioCtx.currentTime);
+      masterLimiter.attack.setValueAtTime(0.002, audioCtx.currentTime);
+      masterLimiter.release.setValueAtTime(0.2, audioCtx.currentTime);
+      masterLimiter.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+    return audioCtx;
+  }
+
+  function playEventAudio(magnitude) {
+    if (!state.audioEnabled) return;
+    const mag = typeof magnitude === 'number' && !isNaN(magnitude) ? magnitude : 3.0;
+
+    const now = performance.now();
+    // Throttle during high-speed playback (e.g. 32x) to maintain clarity and avoid buffer overrun
+    if (now - lastAudioTrigger < 45) return;
+    lastAudioTrigger = now;
+
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+
+    const t = ctx.currentTime;
+    // Normalized magnitude between 0.0 (M3.0) and 1.0 (M7.5+)
+    const norm = Math.max(0, Math.min(1, (mag - 3.0) / 4.5));
+
+    // Audio level (volume) directly associated with magnitude:
+    // M3.0 -> ~0.14 gain (subtle, soft tap)
+    // M4.5 -> ~0.38 gain (clear, moderate thump)
+    // M5.5 -> ~0.62 gain (prominent, punchy knock)
+    // M7.0+ -> ~0.95 gain (heavy, powerful earth-shaking rumble)
+    const peakGain = Math.min(1.0, 0.14 + Math.pow(norm, 1.15) * 0.84);
+
+    // Frequency: deeper resonant rumble for larger earthquakes
+    // M3.0: ~240 Hz down to 100 Hz (crisp, light seismic ping)
+    // M5.0: ~120 Hz down to 50 Hz (solid body thump)
+    // M7.0: ~60 Hz down to 32 Hz (deep infrasonic seismic wave)
+    const startFreq = Math.max(50, 240 - norm * 180);
+    const endFreq = Math.max(30, startFreq * 0.42);
+
+    // Duration: longer reverberant decay for larger magnitude energy
+    const duration = Math.min(1.8, 0.20 + norm * 1.2);
+
+    // 1. Primary Seismic Body Oscillator
+    const osc = ctx.createOscillator();
+    osc.type = mag >= 5.0 ? 'triangle' : 'sine';
+    osc.frequency.setValueAtTime(startFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(endFreq, t + duration);
+
+    const gainNode = ctx.createGain();
+    gainNode.gain.setValueAtTime(0.0001, t);
+    gainNode.gain.linearRampToValueAtTime(peakGain, t + 0.012);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+
+    // Lowpass filter modeling earth crust damping
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(startFreq * 2.8, t);
+    filter.frequency.exponentialRampToValueAtTime(75, t + duration);
+
+    osc.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(masterLimiter);
+
+    osc.start(t);
+    osc.stop(t + duration);
+
+    // 2. High-energy Sub-bass Rumble (for M >= 4.5)
+    if (mag >= 4.5) {
+      const subOsc = ctx.createOscillator();
+      subOsc.type = 'sine';
+      const subGain = ctx.createGain();
+      const subLevel = peakGain * (0.45 + norm * 0.45);
+
+      subOsc.frequency.setValueAtTime(Math.max(35, 60 - norm * 22), t);
+      subOsc.frequency.exponentialRampToValueAtTime(30, t + duration * 1.3);
+
+      subGain.gain.setValueAtTime(0.0001, t);
+      subGain.gain.linearRampToValueAtTime(subLevel, t + 0.025);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, t + duration * 1.3);
+
+      subOsc.connect(subGain);
+      subGain.connect(masterLimiter);
+
+      subOsc.start(t);
+      subOsc.stop(t + duration * 1.3);
+    }
+
+    // 3. Transient Click / Ping (so high-frequency click is clear on phone/laptop speakers)
+    const clickOsc = ctx.createOscillator();
+    const clickGain = ctx.createGain();
+    clickOsc.type = 'sine';
+    clickOsc.frequency.setValueAtTime(Math.min(900, startFreq * 3.2), t);
+    clickOsc.frequency.exponentialRampToValueAtTime(110, t + 0.035);
+
+    clickGain.gain.setValueAtTime(0.0001, t);
+    clickGain.gain.linearRampToValueAtTime(peakGain * 0.22, t + 0.004);
+    clickGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.038);
+
+    clickOsc.connect(clickGain);
+    clickGain.connect(masterLimiter);
+
+    clickOsc.start(t);
+    clickOsc.stop(t + 0.04);
+  }
+
+  // Expose for testing/diagnostics
+  window.playEventAudio = playEventAudio;
 
   /* ---------- Magnitude helpers ---------- */
   function magColor(m) {
@@ -747,7 +875,16 @@
       params.start_date = '2000-01-01';
     }
     const data = await api('/api/v1/earthquakes', params);
-    state.currentData = data.items || [];
+    const items = data.items || [];
+    if (state.knownEventIds.size > 0 && state.audioEnabled) {
+      const newQuakes = items.filter(e => !state.knownEventIds.has(e.id));
+      if (newQuakes.length > 0) {
+        const maxMag = Math.max(...newQuakes.map(e => e.magnitude));
+        playEventAudio(maxMag);
+      }
+    }
+    items.forEach(e => state.knownEventIds.add(e.id));
+    state.currentData = items;
     state.timeRange = state.currentData.map(e => e.event_time_utc).filter(Boolean);
     if (state.timeRange.length > 1) state.timeRange.sort();
     sortedCacheKey = '';
@@ -829,6 +966,10 @@
       fillOpacity: 0.7
     }).addTo(markerLayer);
 
+    m.on('click', () => {
+      playEventAudio(e.magnitude);
+    });
+
     const depth = (e.depth_km || 0).toFixed(1);
     m.bindPopup(`
       <div class="popup-card">
@@ -877,7 +1018,7 @@
       const timeStr = time.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
       const source = e.source || (e.region === 'canada' ? 'NRCan' : 'CENC');
       return `
-        <div class="event-card" data-lat="${e.latitude}" data-lon="${e.longitude}" style="--mag-color:${color}" tabindex="0" role="button" aria-label="M${e.magnitude.toFixed(1)} ${loc.text} ${dateStr}">
+        <div class="event-card" data-lat="${e.latitude}" data-lon="${e.longitude}" data-mag="${e.magnitude}" style="--mag-color:${color}" tabindex="0" role="button" aria-label="M${e.magnitude.toFixed(1)} ${loc.text} ${dateStr}">
           <span class="mag-pill" style="--mag-color:${color}">${e.magnitude.toFixed(1)}</span>
           <div class="event-card-main">
             <div class="event-card-region"><span class="flag">${loc.flag}</span> ${loc.text}</div>
@@ -905,10 +1046,12 @@
   function focusMarker(card) {
     const lat = parseFloat(card.dataset.lat);
     const lon = parseFloat(card.dataset.lon);
+    const mag = parseFloat(card.dataset.mag);
     map.flyTo([lat, lon], Math.max(map.getZoom(), 6), { duration: 0.8 });
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     feedItems.querySelectorAll('.event-card').forEach(c => c.classList.remove('active'));
     card.classList.add('active');
+    if (!isNaN(mag)) playEventAudio(mag);
   }
 
   /* ---------- Mag readout (header Max Mag) ---------- */
@@ -997,7 +1140,10 @@ const sorted = getPlaybackData();
       }
       $('tl-scrubber').value = state.playback.idx;
       $('tl-date').textContent = new Date(snap[state.playback.idx].event_time_utc).toLocaleDateString();
-      if (markerVisible(snap[state.playback.idx])) addMarker(snap[state.playback.idx]);
+      if (markerVisible(snap[state.playback.idx])) {
+        addMarker(snap[state.playback.idx]);
+        playEventAudio(snap[state.playback.idx].magnitude);
+      }
       scheduleTick(tickId);
     }, step);
   }
@@ -1163,7 +1309,7 @@ const sorted = getPlaybackData();
     tableBody.innerHTML = page.map(e => {
       const loc = formatLocation(e);
       return `
-      <tr data-lat="${e.latitude}" data-lon="${e.longitude}">
+      <tr data-lat="${e.latitude}" data-lon="${e.longitude}" data-mag="${e.magnitude}">
         <td class="mag-cell" style="--mag-color:${magColor(e.magnitude)}">
           <span class="cell-swatch" style="background:${magColor(e.magnitude)}"></span>
           ${e.magnitude.toFixed(1)}
@@ -1180,6 +1326,8 @@ const sorted = getPlaybackData();
     tableBody.querySelectorAll('tr').forEach(tr => {
       tr.addEventListener('click', () => {
         map.flyTo([parseFloat(tr.dataset.lat), parseFloat(tr.dataset.lon)], Math.max(map.getZoom(), 6), { duration: 0.8 });
+        const mag = parseFloat(tr.dataset.mag);
+        if (!isNaN(mag)) playEventAudio(mag);
       });
     });
 
@@ -2242,7 +2390,12 @@ const sorted = getPlaybackData();
           : `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`;
       }
       $('btn-sort').classList.toggle('active', state.audioEnabled);
-      showToast(state.audioEnabled ? '🔊 Audio ON' : '🔇 Audio Muted', 'info');
+      $('btn-sort').setAttribute('data-tip', state.audioEnabled ? 'Audio ON (Click to mute)' : 'Audio Muted (Click to enable)');
+      showToast(state.audioEnabled ? '🔊 Audio ON · Magnitude Sonification' : '🔇 Audio Muted', 'info');
+      if (state.audioEnabled) {
+        getAudioCtx();
+        playEventAudio(4.5);
+      }
     });
 
     /* Timeline */
@@ -2251,13 +2404,21 @@ const sorted = getPlaybackData();
       const t = state.timeRange; if (!t.length) return;
       state.playback.idx = (state.playback.idx + 1) % t.length;
       syncScrubber();
+      const snap = getPlaybackData();
+      if (snap[state.playback.idx]) playEventAudio(snap[state.playback.idx].magnitude);
     });
     $('tl-step-back').addEventListener('click', () => {
       const t = state.timeRange; if (!t.length) return;
       state.playback.idx = (state.playback.idx - 1 + t.length) % t.length;
       syncScrubber();
+      const snap = getPlaybackData();
+      if (snap[state.playback.idx]) playEventAudio(snap[state.playback.idx].magnitude);
     });
-    $('tl-scrubber').addEventListener('input', syncScrubber);
+    $('tl-scrubber').addEventListener('input', () => {
+      syncScrubber();
+      const snap = getPlaybackData();
+      if (snap[state.playback.idx]) playEventAudio(snap[state.playback.idx].magnitude);
+    });
     $('tl-speed').addEventListener('change', e => {
       state.playback.speed = parseFloat(e.target.value);
     });

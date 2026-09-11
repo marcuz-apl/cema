@@ -3788,3 +3788,10 @@ header {
     scroll-behavior: auto !important;
   }
 }
+/* Audio toggle active state */
+#btn-sort.active {
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.14);
+  border-color: rgba(255, 71, 87, 0.38);
+  box-shadow: 0 0 12px rgba(255, 71, 87, 0.3);
+}
