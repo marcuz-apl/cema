@@ -5,6 +5,19 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260911x] - 2026-09-11
+
+### Fixed
+- **Mobile Table Modal Export GeoJSON Button Overflow**: Resolved an issue where the Earthquake Data Table card on mobile devices (`<= 768px`) could not hold the "Export GeoJSON" button due to non-wrapping flex containers pushing export buttons off the right edge.
+  - Grouped `#btn-export-csv` and `#btn-export-geojson` into a dedicated `.table-export-actions` container, keeping the export buttons paired side-by-side.
+  - Restructured `#table-modal .modal-header` on mobile to stack gracefully:
+    - Row 1: `Earthquake Data Table` title with calendar icon, and `✕` close button pinned top-right (`position: absolute; right: 0.65rem; top: 0.6rem;`).
+    - Row 2: Catalog scope toggler (`Latest 1000` / `All Time`).
+    - Row 3: Paired export buttons (`Export CSV` and `Export GeoJSON`), fully visible and bounded inside the card with ample breathing room.
+  - Preserved desktop header alignment where scope toggle, export actions, and close button sit inline on the right.
+
+---
+
 ## [v0.5.0+260911w] - 2026-09-11
 
 ### Changed
