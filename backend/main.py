@@ -168,11 +168,17 @@ def query_db(db_file, min_mag, max_mag, limit, region_filter, start_date=None, e
 
 @app.get("/")
 async def root():
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+    return FileResponse(
+        os.path.join(FRONTEND_DIR, "index.html"),
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
+    )
 
 @app.get("/admin", include_in_schema=False)
 async def admin_panel():
-    return FileResponse(os.path.join(FRONTEND_DIR, "admin.html"))
+    return FileResponse(
+        os.path.join(FRONTEND_DIR, "admin.html"),
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
+    )
 
 @app.get("/api/v1/info")
 async def info():

@@ -5,6 +5,16 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260912a] - 2026-09-12
+
+### Changed
+- **Asset Cache-Busting & No-Cache Headers**:
+  - Appended version query string `?v=v0.5.0+260912a` to `/css/style.css` in `frontend/index.html` and admin assets in `frontend/admin.html` to prevent mobile Safari/Chrome aggressive disk-cache lock-in.
+  - Added explicit HTTP headers `Cache-Control: no-cache, no-store, must-revalidate`, `Pragma: no-cache`, and `Expires: 0` to FastAPI root `/` and `/admin` `FileResponse` handlers in `backend/main.py`.
+- **Application Server Restart**: Cleanly recycled the Uvicorn ASGI daemon on port 4071 to ensure all latest backend and static routes are actively served.
+
+---
+
 ## [v0.5.0+260911x] - 2026-09-11
 
 ### Fixed
