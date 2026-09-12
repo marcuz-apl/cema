@@ -1,6 +1,6 @@
 # CEMA — Canada / China Earthquake Monitoring & Alert System
 
-[![Version](https://img.shields.io/badge/version-v0.9.0%2B260912c-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v0.9.0%2B260912d-blue.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.11%2B-green.svg)](requirements.txt)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg)](https://fastapi.tiangolo.com)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-brightgreen.svg)](https://leafletjs.com)

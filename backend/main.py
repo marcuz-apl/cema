@@ -180,6 +180,13 @@ async def admin_panel():
         headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
     )
 
+@app.get("/admin/docs", include_in_schema=False)
+async def admin_docs():
+    return FileResponse(
+        os.path.join(FRONTEND_DIR, "admin-docs.html"),
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
+    )
+
 @app.get("/api/v1/info")
 async def info():
     return {"service": "CEMA", "version": "0.9.0", "regions": ["canada", "china"]}

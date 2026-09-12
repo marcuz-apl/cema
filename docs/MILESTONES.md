@@ -1,6 +1,6 @@
 # Milestones & Phases — CEMA
 
-CEMA milestone progression following the `changelog-curator` and `versioning-alfazen` protocols. Current project version: **`v0.9.0+260912c`**.
+CEMA milestone progression following the `changelog-curator` and `versioning-alfazen` protocols. Current project version: **`v0.9.0+260912d`**.
 
 ---
 
@@ -68,5 +68,6 @@ CEMA milestone progression following the `changelog-curator` and `versioning-alf
 - [x] Optimized `Dockerfile` and `docker-compose.yml` mapped to host port 4071.
 - [x] Persistent volume mounts for catalog retention (`./data:/app/data`).
 - [x] Standardized pytest configuration (`pytest.ini` with `pythonpath = .`).
-- [x] Full automated test suite verification (35 unit/integration tests passing).
+- [x] Dedicated Knowledge Base & Documentation page inside Admin Panel (`/admin/docs`).
+- [x] Full automated test suite verification (52 unit/integration/E2E tests passing).
 - [x] Documentation synchronization (README, PRD, AGENTS, CHANGELOG, HANDOFF).

@@ -5,6 +5,19 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.9.0+260912d] - 2026-09-12
+
+### Added
+- **Admin Panel Dedicated Seismology & Operations Documentation Page (`/admin/docs`)**:
+  - Built a comprehensive, high-density Knowledge Base page (`frontend/admin-docs.html`) within the CEMA Operations Deck suite.
+  - **Theoretical Seismology & Earthquake Mechanics**: Covers plate boundary kinematics, Reid's Elastic Rebound Theory (1906), rate-and-state stick-slip friction (τ_s), 3D hypocenter vs. 2D epicenter geometry, structural fault classifications (normal, thrust/megathrust, strike-slip), wave propagation physics (P, S, Rayleigh, Love), Moment magnitude scale (Mw = ⅔ log₁₀ M₀ - 6.07), Gutenberg-Richter energy formula (log₁₀ E = 4.8 + 1.5M), frequency-magnitude recurrence (log₁₀ N = a - bM) with b-value stress indicators, and focal depth attenuation.
+  - **Regional Earthquake Profiles (Canada & China)**: Detailed comparative seismotectonics, active seismic belts (Cascadia megathrust, Queen Charlotte Fault, St. Lawrence intraplate, Longmenshan thrust belt, Tibetan escape faults, North China grabens), benchmark historical events (1700 Cascadia, 1929 Grand Banks, 1949 Haida Gwaii, 1556 Shaanxi, 1920 Haiyuan, 1976 Tangshan, 2008 Wenchuan), and national monitoring authorities (NRCan / CNSN vs. CENC / CEA).
+  - **CEMA Monitoring & Alert Engine Architecture**: Multi-agency ingestion pipelines (NRCan, CENC, USGS) with 3-minute background sync cron, spatial-temporal deduplication algorithm (≤ 25 km, ± 60 s, M ≥ 3.0), dual isolated regional catalogs (`data/eq-canada.db`, `data/eq-china.db`) in SQLite WAL mode, ray-casting sovereign boundary classification, real-time Server-Sent Events (`/api/v1/live`), Web Audio API acoustic sonification, and administrative deletion safeguards.
+  - **Navigation & Ergonomics**: Integrated direct header link (`Docs`) with inline SVG icons, scroll-spy table of contents with in-page search, print/PDF export styling (`window.print()`), dark/light theme toggle parity, and mobile-first collapsible navigation summary.
+  - **Automated Test Coverage**: Added `test_admin_docs_page` in `tests/test_admin.py` bringing test suite to 52 passing tests.
+
+---
+
 ## [v0.9.0+260912c] - 2026-09-12
 
 ### Changed

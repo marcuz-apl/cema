@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEMA · Seismology & Operations Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/admin.css?v=v0.9.0+260912d">
+<style>
+/* Documentation view typography & layout enhancements */
+.math-symbol { font-family: 'Times New Roman', Times, serif; font-style: italic; }
+.eq-box {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  color: #f8fafc;
+  letter-spacing: 0.5px;
+}
+html[data-theme='light'] .eq-box {
+  background: #f1f5f9;
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #0f172a;
+}
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--line-strong);
+  background: rgba(var(--bg-glass-rgb), 0.5);
+  color: var(--text-dim);
+}
+.badge-pill.red { color: var(--accent); border-color: rgba(var(--accent-rgb), 0.35); background: rgba(var(--accent-rgb), 0.1); }
+.badge-pill.gold { color: var(--accent-gold); border-color: rgba(var(--accent-gold-rgb), 0.35); background: rgba(var(--accent-gold-rgb), 0.1); }
+.badge-pill.green { color: var(--good); border-color: rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.1); }
+
+/* Mobile collapsible table of contents */
+.docs-toc-collapsible {
+  width: 100%;
+}
+.docs-toc-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.docs-toc-summary::-webkit-details-marker { display: none; }
+.docs-toc-summary::after {
+  content: '▼';
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+details[open] .docs-toc-summary::after {
+  transform: rotate(180deg);
+}
+
+@media (min-width: 1025px) {
+  .docs-toc-summary { display: none; }
+  .docs-toc-collapsible > div { display: block !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="cyber-grid" aria-hidden="true"></div>
+<div class="ambient ambient-a" aria-hidden="true"></div>
+<div class="ambient ambient-b" aria-hidden="true"></div>
+
+<header class="deck-header">
+  <div class="dh-left">
+    <div class="brand-mark sm">CEMA</div>
+    <div class="dh-title">
+      <div class="dh-name">Knowledge Base <span class="dh-dot">·</span> <span class="chip">v0.9.0</span></div>
+      <div class="dh-sub">Seismology Theory · Regional Profiles (CAN/CHN) · CEMA Operations Architecture</div>
+    </div>
+  </div>
+  <div class="dh-right">
+    <div class="live-badge"><span class="live-dot"></span>ONLINE</div>
+    <div class="clock" id="clock">--:--:--</div>
+    <button class="btn btn-ghost" onclick="window.print()" title="Print or save as PDF"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>Print / PDF</button>
+    <a class="btn btn-ghost" href="/admin" title="Return to Operations Deck">← Operations Deck</a>
+    <a class="btn btn-ghost" href="/" title="Return to Public Map">← Public Map</a>
+    <button id="themeBtn" class="icon-btn" title="Toggle theme" style="margin-left: 4px;">◐</button>
+  </div>
+</header>
+
+<div class="docs-layout">
+
+  <!-- Sticky Sidebar Navigation -->
+  <aside class="docs-sidebar">
+    <div class="docs-search-wrap">
+      <span class="docs-search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+      <input type="text" id="docsSearch" class="docs-search-input" placeholder="Search documentation..." autocomplete="off">
+    </div>
+
+    <details class="docs-toc-collapsible" open>
+      <summary class="docs-toc-summary"><span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> Jump to Documentation Topic</span></summary>
+      <div style="margin-top: 10px;">
+        <nav class="docs-toc" id="docsNav">
+          <div class="docs-toc-header">Documentation Index</div>
+
+          <a href="#section-theory" class="docs-toc-link active">
+            <span>1. Seismological Theory</span>
+          </a>
+          <div class="docs-toc-sub">
+            <a href="#theory-tectonics" class="docs-toc-link">1.1 Plate Tectonics & Faults</a>
+            <a href="#theory-waves" class="docs-toc-link">1.2 Seismic Wave Physics</a>
+            <a href="#theory-magnitude" class="docs-toc-link">1.3 Magnitude & Energy</a>
+            <a href="#theory-gr-law" class="docs-toc-link">1.4 Gutenberg-Richter Law</a>
+            <a href="#theory-depth" class="docs-toc-link">1.5 Focal Depth & Intensity</a>
+          </div>
+
+          <a href="#section-profiles" class="docs-toc-link">
+            <span>2. Regional Profiles</span>
+          </a>
+          <div class="docs-toc-sub">
+            <a href="#profile-canada" class="docs-toc-link">2.1 Canada Earthquake Profile</a>
+            <a href="#profile-china" class="docs-toc-link">2.2 China Earthquake Profile</a>
+            <a href="#profile-comparison" class="docs-toc-link">2.3 Comparative Tectonics</a>
+          </div>
+
+          <a href="#section-cema" class="docs-toc-link">
+            <span>3. CEMA Operations</span>
+          </a>
+          <div class="docs-toc-sub">
+            <a href="#cema-ingestion" class="docs-toc-link">3.1 Multi-Agency Ingestion</a>
+            <a href="#cema-dedup" class="docs-toc-link">3.2 Spatial-Temporal Dedup</a>
+            <a href="#cema-catalogs" class="docs-toc-link">3.3 Regional Catalog DBs</a>
+            <a href="#cema-classification" class="docs-toc-link">3.4 Sovereign Classification</a>
+            <a href="#cema-streaming" class="docs-toc-link">3.5 Live SSE & Dual Clocks</a>
+            <a href="#cema-audio" class="docs-toc-link">3.6 Acoustic Sonification</a>
+            <a href="#cema-admin" class="docs-toc-link">3.7 Admin & Data Safeguards</a>
+          </div>
+        </nav>
+      </div>
+    </details>
+  </aside>
+
+  <!-- Main Article Body -->
+  <main class="docs-content" id="docsContent">
+
+    <!-- ══════════════════════════════════════════════════════════════
+         SECTION 1: THEORETICAL SEISMOLOGY
+         ══════════════════════════════════════════════════════════════ -->
+    <section id="section-theory" class="doc-section">
+      <article class="doc-card">
+        <div class="doc-header-block">
+          <div class="doc-badge-row">
+            <span class="doc-badge">SECTION 01</span>
+            <span class="doc-badge gold">FOUNDATIONAL SCIENCE</span>
+            <span class="doc-badge green">GEOPHYSICS</span>
+          </div>
+          <h1 class="doc-title">Theory of Seismology & Earthquake Mechanics</h1>
+          <p class="doc-subtitle">Geophysical mechanics of tectonic rupture, seismic wave propagation dynamics, logarithmic magnitude scales, and energy dissipation laws.</p>
+        </div>
+
+        <p class="doc-lead">
+          An <strong>earthquake</strong> is the transient mechanical vibration of the Earth's crust caused by the sudden release of accumulated elastic strain energy along geological fractures known as faults. The physics of seismology governs how strain builds up over decadal to millennial cycles and releases in fractions of a second.
+        </p>
+
+        <!-- 1.1 Tectonics & Fault Mechanics -->
+        <h2 id="theory-tectonics" class="doc-subhead">1.1 Plate Tectonics & Fault Slip Mechanics</h2>
+        <p class="doc-p">
+          The Earth's rigid outer lithosphere is partitioned into major and minor tectonic plates floating atop the ductile, viscoelastic asthenosphere. Continuous relative plate velocities (typically 10 to 100 mm/year) generate severe boundary deformation driven by mantle convection, slab pull, and ridge push forces.
+        </p>
+
+        <div class="takeaway-grid">
+          <div class="takeaway-card">
+            <div class="badge-pill red">MECHANICS</div>
+            <div class="takeaway-title">Reid's Elastic Rebound Theory</div>
+            <div class="takeaway-desc">Formulated after the 1906 San Francisco earthquake: tectonic forces continuously distort crustal blocks until frictional shear resistance along locked asperities is exceeded. The rocks snap back elastically to an unstrained configuration, radiating accumulated strain energy as seismic waves.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill gold">FRICTION</div>
+            <div class="takeaway-title">Stick-Slip Fault Dynamics</div>
+            <div class="takeaway-desc">Fault interfaces follow rate-and-state friction. During the inter-seismic period, the fault remains locked ("stuck"). When ambient shear stress overcomes static friction (<span class="math-symbol">τ</span><sub>s</sub>), dynamic slip nucleates and accelerates at rupture velocities of ≈ 2.5 – 3.5 km/s.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill green">GEOMETRY</div>
+            <div class="takeaway-title">Hypocenter vs. Epicenter</div>
+            <div class="takeaway-desc">The <strong>hypocenter</strong> (focal point) is the exact 3D subterranean coordinate (<span class="math-symbol">x, y, z</span>) where fault dislocation initiates. The <strong>epicenter</strong> is the geographical projection on the surface directly above the hypocenter (<span class="math-symbol">x, y</span>, 0).</div>
+          </div>
+        </div>
+
+        <div class="callout gold">
+          <div class="callout-title">Structural Fault Classifications</div>
+          <div class="callout-body">
+            <strong>Normal Faults:</strong> Extensional tectonic regimes where the hanging wall drops relative to the footwall (e.g. continental rifts, East African Rift, Basin & Range).<br>
+            <strong>Reverse / Thrust Faults:</strong> Compressional regimes where the hanging wall is driven upward over the footwall. Megathrust faults along oceanic subduction zones generate the planet's largest earthquakes (<span class="math-symbol">M</span><sub>w</sub> &gt; 8.5).<br>
+            <strong>Strike-Slip Faults:</strong> Lateral shear regimes with near-vertical fault planes where blocks slip horizontally past each other (dextral / right-lateral vs. sinistral / left-lateral).
+          </div>
+        </div>
+
+        <!-- 1.2 Wave Physics -->
+        <h2 id="theory-waves" class="doc-subhead">1.2 Seismic Wave Propagation Physics</h2>
+        <p class="doc-p">
+          Rupture along a fault plane radiates kinetic energy as elastic strain waves that propagate both through the planetary interior (body waves) and along the crustal interface (surface waves).
+        </p>
+
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>Wave Type</th>
+                <th>Classification</th>
+                <th>Particle Motion</th>
+                <th>Velocity Range</th>
+                <th>Propagation Medium</th>
+                <th>Engineering Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>P-Wave (Primary)</strong></td>
+                <td>Body (Compressional)</td>
+                <td>Longitudinal; alternating compression and rarefaction parallel to ray path</td>
+                <td><code>5.5 – 8.0 km/s</code></td>
+                <td>Solids, Liquids, Gases</td>
+                <td>First to arrive; produces initial acoustic rumble and vertical jolt; low structural damage.</td>
+              </tr>
+              <tr>
+                <td><strong>S-Wave (Secondary)</strong></td>
+                <td>Body (Shear)</td>
+                <td>Transverse; shear motion perpendicular to propagation ray path</td>
+                <td><code>3.0 – 4.5 km/s</code></td>
+                <td>Solids ONLY (<span class="math-symbol">μ</span> = 0 in fluids)</td>
+                <td>Second arrival; causes strong lateral shaking; triggers structural shearing and soil liquefaction.</td>
+              </tr>
+              <tr>
+                <td><strong>Rayleigh Wave</strong></td>
+                <td>Surface Boundary</td>
+                <td>Retrograde elliptical roll in vertical plane along propagation path</td>
+                <td><code>~ 0.9 × v_s</code></td>
+                <td>Free Surface Boundary</td>
+                <td>Long period; high amplitude; creates rolling ground sensation and large-scale ground displacement.</td>
+              </tr>
+              <tr>
+                <td><strong>Love Wave</strong></td>
+                <td>Surface Boundary</td>
+                <td>Horizontally polarized transverse shear in crustal low-velocity waveguide</td>
+                <td><code>~ 3.0 – 4.2 km/s</code></td>
+                <td>Layered Crustal Solids</td>
+                <td>Severe horizontal ground shear; destructive to bridges, foundations, and high-rise structures.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 1.3 Magnitude & Energy -->
+        <h2 id="theory-magnitude" class="doc-subhead">1.3 Magnitude Scales & Energy Release Laws</h2>
+        <p class="doc-p">
+          Earthquake magnitude is a logarithmic quantification of radiated seismic energy and physical rupture dimensions. CEMA prioritizes non-saturating scales to maintain true dynamic range.
+        </p>
+
+        <div class="formula-grid">
+          <div class="formula-card">
+            <div class="formula-title">Moment Magnitude Scale (Mw)</div>
+            <div class="eq-box">M<sub>w</sub> = ⅔ log₁₀(M₀) - 6.07</div>
+            <div class="formula-desc">
+              Where <span class="math-symbol">M</span><sub>0</sub> = <span class="math-symbol">μ · A · D̄</span> is scalar seismic moment in Newton-meters (N·m), <span class="math-symbol">μ</span> is crustal shear modulus (≈ 30 GPa), <span class="math-symbol">A</span> is rupture area (m²), and <span class="math-symbol">D̄</span> is average fault displacement (m). Unlike the Richter scale, <span class="math-symbol">M</span><sub>w</sub> never saturates on great earthquakes.
+            </div>
+          </div>
+
+          <div class="formula-card">
+            <div class="formula-title">Gutenberg-Richter Energy Equation</div>
+            <div class="eq-box">log₁₀(E) = 4.8 + 1.5 · M</div>
+            <div class="formula-desc">
+              Relates magnitude <span class="math-symbol">M</span> to radiated seismic energy <span class="math-symbol">E</span> in Joules (J). Because the scaling exponent is 1.5, each +1.0 magnitude step multiplies released seismic energy by 10<sup>1.5</sup> ≈ 31.62×. A +2.0 increase represents exactly 1,000× more energy.
+            </div>
+          </div>
+        </div>
+
+        <!-- 1.4 Gutenberg-Richter Recurrence -->
+        <h2 id="theory-gr-law" class="doc-subhead">1.4 Statistical Seismology: Gutenberg-Richter Recurrence</h2>
+        <p class="doc-p">
+          Across any active tectonic boundary, the frequency of occurrence of earthquakes follows an inverse power-law distribution known as the <strong>Gutenberg-Richter relation</strong>:
+        </p>
+
+        <div class="formula-card">
+          <div class="formula-title">Frequency-Magnitude Recurrence Relation</div>
+          <div class="eq-box">log₁₀ N(≥ M) = a - b · M</div>
+          <div class="formula-desc">
+            Where <span class="math-symbol">N</span>(≥ <span class="math-symbol">M</span>) is the cumulative count of earthquakes of magnitude ≥ <span class="math-symbol">M</span>, <span class="math-symbol">a</span> denotes regional seismicity productivity, and <span class="math-symbol">b</span> is the slope parameter (typically close to 1.0).
+            <br><br>
+            <strong>Physical Interpretation of the b-Value:</strong>
+            <ul style="margin: 6px 0 0 18px; line-height: 1.65;">
+              <li><strong>b ≈ 1.0 (Equilibrium):</strong> Standard tectonic background stress equilibrium (for every one M 6.0 event, there occur ≈ 10 M 5.0 and ≈ 100 M 4.0 events).</li>
+              <li><strong>b &lt; 0.8 (Depressed Stress):</strong> High differential shear stress and locked asperities; elevated probability of imminent large-scale seismic rupture.</li>
+              <li><strong>b &gt; 1.2 (Elevated Swarm):</strong> Low ambient differential stress or high geothermal fluid pressure, typical of volcanic swarms or hydraulic fracturing.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 1.5 Focal Depth & Intensity -->
+        <h2 id="theory-depth" class="doc-subhead">1.5 Focal Depth Regimes & Intensity Attenuation</h2>
+        <p class="doc-p">
+          Earthquakes are categorized into three depth tiers based on the lithospheric thermal-rheological boundary:
+        </p>
+
+        <div class="takeaway-grid">
+          <div class="takeaway-card">
+            <div class="badge-pill red">0 – 70 km</div>
+            <div class="takeaway-title">Shallow Focus</div>
+            <div class="takeaway-desc">Comprises over 85% of all global seismic events. Causes maximum destructive surface shaking due to minimal geometric wave attenuation before reaching human infrastructure.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill gold">70 – 300 km</div>
+            <div class="takeaway-title">Intermediate Focus</div>
+            <div class="takeaway-desc">Generated within descending oceanic lithospheric slabs (Wadati-Benioff zones). Rarely generates catastrophic surface shaking unless magnitude exceeds <span class="math-symbol">M</span><sub>w</sub> 7.5.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill green">300 – 700 km</div>
+            <div class="takeaway-title">Deep Focus</div>
+            <div class="takeaway-desc">Confined to deep subducted slabs where brittle fracture is inhibited by lithostatic confining pressure; driven by mineral phase transitions (e.g. olivine → wadsleyite → ringwoodite).</div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Magnitude vs. Intensity (MMI & PGA)</div>
+          <div class="callout-body">
+            <strong>Magnitude</strong> represents a single, objective measurement of the energy released at the source. <strong>Intensity</strong> (measured via the Modified Mercalli Intensity scale, MMI I–XII, and Peak Ground Acceleration, PGA) varies continuously based on hypocentral distance, radiation pattern, directivity, and local soil resonance / liquefaction site effects.
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         SECTION 2: CANADA & CHINA EARTHQUAKE PROFILES
+         ══════════════════════════════════════════════════════════════ -->
+    <section id="section-profiles" class="doc-section">
+      <article class="doc-card">
+        <div class="doc-header-block">
+          <div class="doc-badge-row">
+            <span class="doc-badge">SECTION 02</span>
+            <span class="doc-badge gold">REGIONAL PROFILES</span>
+            <span class="doc-badge green">CANADA & CHINA</span>
+          </div>
+          <h1 class="doc-title">Regional Earthquake Profiles: Canada & China</h1>
+          <p class="doc-subtitle">Comparative tectonic settings, fault systems, active seismic belts, historical benchmark events, and national monitoring authorities.</p>
+        </div>
+
+        <!-- 2.1 Canada Profile -->
+        <h2 id="profile-canada" class="doc-subhead">2.1 Canada Earthquake Profile</h2>
+        <p class="doc-p">
+          Canada experiences approximately 4,000 earthquakes annually, monitored nationally by <strong>Natural Resources Canada (NRCan)</strong> through the Canadian National Seismograph Network (CNSN). Seismicity is concentrated along the active Pacific Rim margin, the Arctic/Yukon orogeny, and ancient intraplate rift structures in Eastern Canada.
+        </p>
+
+        <div class="takeaway-grid">
+          <div class="takeaway-card">
+            <div class="badge-pill red">SUBDUCTION</div>
+            <div class="takeaway-title">Cascadia Subduction Zone (CSZ)</div>
+            <div class="takeaway-desc">The Juan de Fuca plate subducts beneath the North American Plate along a 1,000 km megathrust trench from northern Vancouver Island to northern California. Currently fully locked, accumulating strain for the next periodic <span class="math-symbol">M</span><sub>w</sub> ≈ 9.0 megathrust earthquake (mean recurrence ~500 years).</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill gold">TRANSFORM</div>
+            <div class="takeaway-title">Queen Charlotte - Fairweather Fault</div>
+            <div class="takeaway-desc">Canada's counterpart to the San Andreas fault: a high-velocity dextral strike-slip plate boundary separating the Pacific and North American plates off Haida Gwaii, slipping at ≈ 40 mm/year. Host to Canada's largest instrumentally recorded event (1949 <span class="math-symbol">M</span><sub>w</sub> 8.1).</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill green">INTRAPLATE</div>
+            <div class="takeaway-title">St. Lawrence Intraplate Seismic Zone</div>
+            <div class="takeaway-desc">Ancient Iapetus rift faults reactivated under regional northeast-southwest compressive stress. Includes the active Charlevoix seismic zone (Quebec), where ancestral meteorite impact fractures concentrate persistent intraplate seismicity.</div>
+          </div>
+        </div>
+
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>Historical Event</th>
+                <th>Date</th>
+                <th>Magnitude</th>
+                <th>Focal Region</th>
+                <th>Tectonic Setting & Historical Significance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cascadia Megathrust</strong></td>
+                <td>Jan 26, 1700</td>
+                <td><code>M ~ 9.0</code></td>
+                <td>Offshore BC / Cascadia Trench</td>
+                <td>Full 1,000 km rupture; triggered an orphan tsunami recorded in coastal chronicles across Japan.</td>
+              </tr>
+              <tr>
+                <td><strong>Grand Banks Earthquake</strong></td>
+                <td>Nov 18, 1929</td>
+                <td><code>Mw 7.2</code></td>
+                <td>Laurentian Slope, Newfoundland</td>
+                <td>Triggered a massive submarine turbidity current severing 12 transatlantic telegraph cables; 28 casualties from tsunami.</td>
+              </tr>
+              <tr>
+                <td><strong>Haida Gwaii Strike-Slip</strong></td>
+                <td>Aug 22, 1949</td>
+                <td><code>Mw 8.1</code></td>
+                <td>Queen Charlotte Fault, BC</td>
+                <td>Canada's largest recorded earthquake; ruptured ~500 km of plate boundary with up to 5 meters of lateral displacement.</td>
+              </tr>
+              <tr>
+                <td><strong>Haida Gwaii Thrust Event</strong></td>
+                <td>Oct 27, 2012</td>
+                <td><code>Mw 7.7</code></td>
+                <td>Moresby Island, BC</td>
+                <td>Oblique thrusting along underthrusting Pacific plate; generated localized 7-meter run-up tsunamis in secluded inlets.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2.2 China Profile -->
+        <h2 id="profile-china" class="doc-subhead gold">2.2 China Earthquake Profile</h2>
+        <p class="doc-p">
+          China experiences exceptionally high continental seismicity, overseen nationally by the <strong>China Earthquake Networks Center (CENC)</strong> under the China Earthquake Administration (CEA). Tectonics are dominated by the continuous collision between the Indian Plate and the Eurasian Plate (40 – 50 mm/year convergence), causing rapid uplift and eastward extrusion (continental escape tectonics) of the Tibetan Plateau against rigid cratonic blocks.
+        </p>
+
+        <div class="takeaway-grid">
+          <div class="takeaway-card">
+            <div class="badge-pill red">COLLISION</div>
+            <div class="takeaway-title">Longmenshan Thrust Belt (Sichuan)</div>
+            <div class="takeaway-desc">Steep topographic and structural boundary between the high Tibetan Plateau and the rigid Sichuan Basin. Compressive thrust and right-lateral strike-slip accumulation resulted in the catastrophic 2008 Wenchuan (<span class="math-symbol">M</span><sub>w</sub> 7.9) and 2013 Lushan (<span class="math-symbol">M</span><sub>s</sub> 7.0) ruptures.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill gold">ESCAPE</div>
+            <div class="takeaway-title">Tibetan Escape Faults (Xianshuihe/Kunlun)</div>
+            <div class="takeaway-desc">Major strike-slip corridors accommodating eastward continental extrusion: left-lateral Altyn Tagh, Kunlun (2001 <span class="math-symbol">M</span><sub>s</sub> 8.1), and Xianshuihe faults with slip rates exceeding 10 – 12 mm/year.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill green">CRATONIC</div>
+            <div class="takeaway-title">North China Cratonic Graben Systems</div>
+            <div class="takeaway-desc">Intraplate extension and shear within the ancient Sino-Korean craton. The Shanxi Graben and Bohai Basin systems have historically produced high-fatality shallow events directly beneath dense population centers (1556 Shaanxi, 1976 Tangshan).</div>
+          </div>
+        </div>
+
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>Historical Event</th>
+                <th>Date</th>
+                <th>Magnitude</th>
+                <th>Focal Region</th>
+                <th>Tectonic Setting & Historical Significance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Shaanxi (Huaxian) Earthquake</strong></td>
+                <td>Jan 23, 1556</td>
+                <td><code>M ~ 8.3</code></td>
+                <td>Weihe Graben, Shaanxi</td>
+                <td>Deadliest earthquake in recorded human history (~830,000 fatalities due to catastrophic collapse of loess cave dwellings).</td>
+              </tr>
+              <tr>
+                <td><strong>Haiyuan Earthquake</strong></td>
+                <td>Dec 16, 1920</td>
+                <td><code>Ms 8.5</code></td>
+                <td>Ningxia / Gansu</td>
+                <td>Left-lateral strike-slip rupture along Haiyuan fault (>220 km surface rupture); over 270,000 casualties from massive loess landslides.</td>
+              </tr>
+              <tr>
+                <td><strong>Tangshan Earthquake</strong></td>
+                <td>Jul 28, 1976</td>
+                <td><code>Ms 7.8</code></td>
+                <td>Hebei Province</td>
+                <td>Shallow blind strike-slip fault directly beneath industrial city; ~242,000 casualties; triggered nationwide overhaul of seismic building codes.</td>
+              </tr>
+              <tr>
+                <td><strong>Wenchuan (Sichuan) Earthquake</strong></td>
+                <td>May 12, 2008</td>
+                <td><code>Mw 7.9 / Ms 8.0</code></td>
+                <td>Longmenshan, Sichuan</td>
+                <td>Unilateral 240+ km rupture along Yingxiu-Beichuan fault; >87,000 dead/missing; catalyzed modern real-time automated CENC seismic network.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2.3 Comparative Tectonics -->
+        <h2 id="profile-comparison" class="doc-subhead">2.3 Comparative Seismotectonic Matrix</h2>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>Seismic Dimension</th>
+                <th>Canada Profile</th>
+                <th>China Profile</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Primary Tectonic Driver</strong></td>
+                <td>Oceanic-continental subduction (Juan de Fuca) & transform strike-slip (Queen Charlotte)</td>
+                <td>Continental-continental collision (India-Eurasia) & lateral escape extrusion</td>
+              </tr>
+              <tr>
+                <td><strong>Primary Seismic Hazard</strong></td>
+                <td>Offshore megathrust & tsunamis in West; moderate intraplate shaking in East</td>
+                <td>Shallow continental ruptures, high-fatality ground shaking, mountainous landslides</td>
+              </tr>
+              <tr>
+                <td><strong>Maximum Credible Magnitude</strong></td>
+                <td><code>Mw 9.0+</code> (Cascadia Subduction Zone megathrust)</td>
+                <td><code>Ms 8.5 – 8.8</code> (Major continental boundary strike-slip / thrust belts)</td>
+              </tr>
+              <tr>
+                <td><strong>National Agency</strong></td>
+                <td>Natural Resources Canada (NRCan) / CNSN</td>
+                <td>China Earthquake Networks Center (CENC) / CEA</td>
+              </tr>
+              <tr>
+                <td><strong>Typical Focal Depths</strong></td>
+                <td>Shallow (10–30 km) to Intermediate (40–80 km in subducting slab)</td>
+                <td>Predominantly shallow crustal (10–25 km), generating high surface accelerations</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         SECTION 3: CEMA MONITORING & ALERT ARCHITECTURE
+         ══════════════════════════════════════════════════════════════ -->
+    <section id="section-cema" class="doc-section">
+      <article class="doc-card">
+        <div class="doc-header-block">
+          <div class="doc-badge-row">
+            <span class="doc-badge">SECTION 03</span>
+            <span class="doc-badge gold">ENGINEERING ARCHITECTURE</span>
+            <span class="doc-badge green">MONITORING & ALERTS</span>
+          </div>
+          <h1 class="doc-title">How CEMA Manages Earthquake Monitoring & Alerts</h1>
+          <p class="doc-subtitle">End-to-end ingestion pipeline, spatial-temporal deduplication engine, dual regional SQLite catalogs, live SSE streaming, and Web Audio acoustic sonification.</p>
+        </div>
+
+        <p class="doc-lead">
+          <strong>CEMA (Canada / China Earthquake Monitoring & Alert system)</strong> is built as a sovereign, zero-external-dependency observatory platform delivering sub-50ms query speeds, persistent regional catalog isolation, live streaming alerts, and magnitude-scaled acoustic sonification.
+        </p>
+
+        <!-- System Architecture Flow -->
+        <h2 id="cema-ingestion" class="doc-subhead">3.1 Multi-Agency Ingestion Architecture</h2>
+        <p class="doc-p">
+          CEMA aggregates raw seismic telemetry from three international seismological authorities simultaneously, maintaining automated failover, rate-limit preservation, and non-blocking asynchronous event loops.
+        </p>
+
+        <div class="arch-diagram-block">
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                           CEMA MULTI-AGENCY INGESTION PIPELINE                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+        │                                   │                                  │
+  [ NRCan Web API ]                 [ CENC Feed / API ]                [ USGS GeoJSON API ]
+   Natural Resources                 China Earthquake                     US Geological
+     Canada (CNSN)                    Networks Center                        Survey
+        │                                   │                                  │
+        └─────────────────────────┬─────────┴──────────────────────────────────┘
+                                  ▼
+                    ┌───────────────────────────────┐
+                    │  Ingestion Adapters & Normal  │
+                    │   (backend/ingestion/adapters) │
+                    └─────────────┬─────────────────┘
+                                  │
+                                  ▼
+                    ┌───────────────────────────────┐
+                    │ Spatial-Temporal Deduplication│  Thresholds:
+                    │   (≤ 25 km, ± 60 s, M ≥ 3.0)  │  • Distance ≤ 25.0 km
+                    └─────────────┬─────────────────┘  • Time Window ± 60.0 s
+                                  │
+                    ┌─────────────┴─────────────────┐
+                    ▼                               ▼
+       [ data/eq-canada.db ]               [ data/eq-china.db ]
+        Canada Regional DB                  China Regional DB
+        (SQLite WAL Mode)                   (SQLite WAL Mode)
+                    │                               │
+                    └─────────────┬─────────────────┘
+                                  ▼
+                    ┌───────────────────────────────┐
+                    │ FastAPI Lifespan / Async API  │
+                    │  REST Endpoints + SSE Stream  │
+                    └─────────────┬─────────────────┘
+                                  │
+         ┌────────────────────────┼────────────────────────┐
+         ▼                        ▼                        ▼
+  [ Public Observatory ]   [ Operations Deck ]    [ Web Audio Sonification ]
+   Leaflet Canvas SPA       /admin Control Deck    Logarithmic Acoustic Pitch
+        </div>
+
+        <div class="arch-step-grid">
+          <div class="arch-step-card">
+            <div class="arch-step-num">PIPELINE 01</div>
+            <div class="arch-step-title">Automated 3-Minute Sync Cron</div>
+            <div class="arch-step-text">A non-blocking background daemon polls NRCan, CENC, and USGS endpoints every 180 seconds, fetching latest seismic solutions without locking client request handlers.</div>
+          </div>
+          <div class="arch-step-card">
+            <div class="arch-step-num">PIPELINE 02</div>
+            <div class="arch-step-title">Historical Backfill Engine</div>
+            <div class="arch-step-text">Admin operations worker executing historical backfill runs in 365-day discrete chunks from present day down to Year 2000, preventing API timeouts and memory exhaustion.</div>
+          </div>
+          <div class="arch-step-card">
+            <div class="arch-step-num">PIPELINE 03</div>
+            <div class="arch-step-title">Multi-Source Cross-Check</div>
+            <div class="arch-step-text">Cross-references USGS world coverage against sovereign NRCan/CENC solutions, ensuring cross-border events along Pacific or Himalayan arcs are captured accurately.</div>
+          </div>
+        </div>
+
+        <!-- 3.2 Deduplication -->
+        <h2 id="cema-dedup" class="doc-subhead">3.2 Spatial-Temporal Deduplication Algorithm</h2>
+        <p class="doc-p">
+          Because both national networks (NRCan/CENC) and global agencies (USGS) detect and report the same seismic ruptures, ingestion pipelines implement a strict spatial-temporal deduplication algorithm before persistence:
+        </p>
+
+        <div class="formula-grid">
+          <div class="formula-card">
+            <div class="formula-title">Spatial Proximity Condition (Haversine)</div>
+            <div class="eq-box">Δd ≤ 25.0 km</div>
+            <div class="formula-desc">Haversine great-circle distance between two candidate epicenter coordinates must be within 25.0 km to account for cross-agency station array variances and regional velocity model differences.</div>
+          </div>
+          <div class="formula-card">
+            <div class="formula-title">Temporal Coincidence Window</div>
+            <div class="eq-box">| t₁ - t₂ | ≤ 60.0 seconds</div>
+            <div class="formula-desc">Origin time difference in UTC must fall within ±60.0 seconds. If both spatial and temporal criteria match, candidate records are recognized as the same rupture event.</div>
+          </div>
+        </div>
+
+        <div class="callout green">
+          <div class="callout-title">Deduplication Priority & Attribute Merging</div>
+          <div class="callout-body">
+            When an event is detected in both a national catalog and USGS, CEMA merges solutions by prioritizing national network precision (NRCan for Canada, CENC for China) for local magnitudes (<span class="math-symbol">M</span><sub>L</sub>, <span class="math-symbol">M</span><sub>s</sub>), while preserving USGS moment tensor solutions (<span class="math-symbol">M</span><sub>w</sub>) when available. Events below magnitude <span class="math-symbol">M</span> &lt; 3.0 are filtered out to maintain catalog purity and high signal-to-noise ratio.
+          </div>
+        </div>
+
+        <!-- 3.3 Regional Catalogs -->
+        <h2 id="cema-catalogs" class="doc-subhead">3.3 Dual Regional SQLite Catalogs & WAL Concurrency</h2>
+        <p class="doc-p">
+          CEMA eliminates shared-state database locking by isolating regional data into three distinct SQLite databases:
+        </p>
+
+        <div class="takeaway-grid">
+          <div class="takeaway-card">
+            <div class="badge-pill red">CATALOG CAN</div>
+            <div class="takeaway-title">data/eq-canada.db</div>
+            <div class="takeaway-desc">Stores Canadian territorial and maritime seismic events (AOI: 41.7°N → 83.1°N, 141.0°W → 52.6°W). Indexed on <code>origintimeutc</code>, <code>magnitude</code>, <code>latitude</code>, <code>longitude</code>, and <code>province</code>.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill gold">CATALOG CHN</div>
+            <div class="takeaway-title">data/eq-china.db</div>
+            <div class="takeaway-desc">Stores Chinese sovereign and continental seismic events (AOI: 18.0°N → 53.6°N, 73.5°E → 135.1°E). Indexed on <code>origintimeutc</code>, <code>magnitude</code>, <code>latitude</code>, <code>longitude</code>, and <code>province</code>.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="badge-pill green">SECURITY</div>
+            <div class="takeaway-title">data/cema-admin.db</div>
+            <div class="takeaway-desc">Stores administrative passkey hashes, cryptographic audit trails, operator access sessions, and rate-limiting moderation locks. Completely separated from public read queries.</div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">High-Concurrency SQLite Optimization</div>
+          <div class="callout-body">
+            All database connections are configured with <code>PRAGMA journal_mode=WAL;</code> (Write-Ahead Logging) and <code>PRAGMA synchronous=NORMAL;</code>. This allows concurrent readers on public endpoints to proceed at full memory speed without ever being blocked by background ingestion writes or backfill operations.
+          </div>
+        </div>
+
+        <!-- 3.4 Sovereign Classification -->
+        <h2 id="cema-classification" class="doc-subhead">3.4 Sovereign Border & Administrative Classification</h2>
+        <p class="doc-p">
+          Unlike raw feeds that often mislabel oceanic or border ruptures with generic geographical strings, CEMA executes a topological ray-casting point-in-polygon algorithm (<code>country_assigner.py</code>) against sovereign national GeoJSON boundaries.
+        </p>
+        <ul class="doc-p" style="margin-left: 20px; line-height: 1.8;">
+          <li><strong>Canada:</strong> Automatically tagged with 2-letter postal abbreviations (BC, AB, ON, QC, YT, NT, NU, etc.). Events within Canada's 200-nautical-mile Exclusive Economic Zone (EEZ) are correctly retained under Canadian jurisdiction.</li>
+          <li><strong>China:</strong> Automatically classified by province, autonomous region, or municipality (SC for Sichuan, YN for Yunnan, XJ for Xinjiang, XZ for Tibet, etc.).</li>
+          <li><strong>Cross-Border / International:</strong> Events in neighboring territories (e.g. US Alaska, Washington, Myanmar, Nepal) are isolated and categorized by their true sovereign jurisdiction.</li>
+        </ul>
+
+        <!-- 3.5 Live SSE & Dual Clocks -->
+        <h2 id="cema-streaming" class="doc-subhead">3.5 Real-Time Server-Sent Events (SSE) & Synchronized Clocks</h2>
+        <p class="doc-p">
+          Live monitoring is delivered over an asynchronous HTTP Server-Sent Events channel at <code>GET /api/v1/live</code>:
+        </p>
+        <div class="takeaway-grid">
+          <div class="takeaway-card">
+            <div class="takeaway-title">📡 Event Streaming (/api/v1/live)</div>
+            <div class="takeaway-desc">Maintains a persistent push channel to all connected observatories. When new events pass deduplication, a JSON payload is immediately broadcast to all clients without client polling overhead.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="takeaway-title">💓 Telemetry Heartbeat (15s)</div>
+            <div class="takeaway-desc">A periodic keep-alive packet ensures proxy connections and mobile network sockets remain open, broadcasting instantaneous active catalog event counts and server health.</div>
+          </div>
+          <div class="takeaway-card">
+            <div class="takeaway-title">⏱️ Synchronized Dual Clocks</div>
+            <div class="takeaway-desc">CEMA maintains three synchronized clocks in the header: Canada Mountain Standard Time (MST, UTC-7), China Standard Time (CST, UTC+8), and UTC, providing immediate operational situational awareness.</div>
+          </div>
+        </div>
+
+        <!-- 3.6 Acoustic Sonification -->
+        <h2 id="cema-audio" class="doc-subhead">3.6 Dynamic Acoustic Seismic Sonification</h2>
+        <p class="doc-p">
+          To provide multimodal sensory awareness, CEMA synthesizes acoustic seismic chirps directly inside the browser using the native <strong>Web Audio API</strong>:
+        </p>
+
+        <div class="formula-grid">
+          <div class="formula-card">
+            <div class="formula-title">Magnitude-to-Frequency Pitch Mapping</div>
+            <div class="eq-box">f(M) = 240.0 - (M - 3.0) · 38.0 Hz</div>
+            <div class="formula-desc">
+              Small tremors (M 3.0) produce crisp, higher-frequency clicks (~240 Hz), while major earthquakes (M 7.0+) trigger deep, ominous infrasonic bass rumbles down to 50 – 60 Hz.
+            </div>
+          </div>
+
+          <div class="formula-card">
+            <div class="formula-title">Dynamic Gain & Exponential Decay Envelope</div>
+            <div class="eq-box">Gain(M) = clamp(0.08 + (M - 3.0) · 0.16, 0.08, 0.85)</div>
+            <div class="formula-desc">
+              Rupture acoustic energy uses an exponential decay gain envelope with duration T = 0.25 + (M - 3.0) × 0.20 s, creating a realistic acoustic impulse without needing external audio file downloads.
+            </div>
+          </div>
+        </div>
+
+        <!-- 3.7 Admin & Safeguards -->
+        <h2 id="cema-admin" class="doc-subhead">3.7 Operations Console, Moderation & Data Safeguards</h2>
+        <p class="doc-p">
+          The CEMA Operations Deck (<code>/admin</code>) equips station operators with comprehensive catalog maintenance tools while preventing accidental data destruction:
+        </p>
+
+        <div class="callout gold">
+          <div class="callout-title">Explicit Safeguards on Destructive Operations</div>
+          <div class="callout-body">
+            Any destructive catalog action (e.g. purging date/year ranges or resetting the engine state) requires:
+            <ol style="margin: 6px 0 0 18px; line-height: 1.65;">
+              <li>Active administrative passkey authorization against <code>data/cema-admin.db</code>.</li>
+              <li>Display of a high-contrast danger modal detailing the exact target database (Canada or China), date range, and affected event count.</li>
+              <li>Explicit, two-step confirmation before executing permanent SQLite <code>DELETE</code> statements.</li>
+              <li>Real-time logging of the deletion event and operator fingerprint into <code>Operator.Log</code> and admin audit tables.</li>
+            </ol>
+          </div>
+        </div>
+      </article>
+    </section>
+
+  </main>
+</div>
+
+<!-- Real-time Clock & Interactive Navigation Script -->
+<script>
+(function() {
+  'use strict';
+
+  // Synchronized UTC Clock
+  function updateClock() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const el = document.getElementById('clock');
+    if (el) {
+      el.textContent = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
+    }
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+  // Collapse TOC on mobile by default
+  const tocDetails = document.querySelector('.docs-toc-collapsible');
+  if (tocDetails && window.innerWidth <= 1024) {
+    tocDetails.removeAttribute('open');
+  }
+
+
+  // Theme Toggler
+  const THEME_KEY = 'cema_admin_theme';
+  const themeBtn = document.getElementById('themeBtn');
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+    sessionStorage.setItem(THEME_KEY, theme);
+  }
+  const savedTheme = localStorage.getItem(THEME_KEY) || sessionStorage.getItem(THEME_KEY) || 'dark';
+  setTheme(savedTheme);
+
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+      setTheme(cur === 'dark' ? 'light' : 'dark');
+    });
+  }
+
+  // Scroll Spy for Table of Contents
+  const sections = document.querySelectorAll('.doc-section, .doc-subhead');
+  const navLinks = document.querySelectorAll('.docs-toc-link');
+
+  function updateActiveToc() {
+    let currentId = '';
+    const scrollPos = window.scrollY + 140;
+
+    sections.forEach(sec => {
+      if (sec.offsetTop <= scrollPos) {
+        currentId = sec.getAttribute('id');
+      }
+    });
+
+    if (currentId) {
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === `#${currentId}`) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+    }
+  }
+
+  window.addEventListener('scroll', updateActiveToc, { passive: true });
+  updateActiveToc();
+
+  // In-page search filter
+  const searchInput = document.getElementById('docsSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.doc-card');
+
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>

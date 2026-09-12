@@ -265,3 +265,21 @@ def test_admin_backfill_mag_floor_2_validation():
         data = resp.json()
         assert data["status"] in ("started", "busy")
         client.post("/api/admin/backfill/reset", headers=AUTH)
+
+
+def test_admin_docs_page():
+    # 1. Verify GET /admin/docs serves the knowledge base
+    resp = client.get("/admin/docs")
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers.get("content-type", "")
+    html = resp.text
+    assert "Theory of Seismology &amp; Earthquake Mechanics" in html or "Theory of Seismology & Earthquake Mechanics" in html
+    assert "Regional Earthquake Profiles: Canada &amp; China" in html or "Regional Earthquake Profiles: Canada & China" in html
+    assert "How CEMA Manages Earthquake Monitoring &amp; Alerts" in html or "How CEMA Manages Earthquake Monitoring & Alerts" in html
+    assert 'href="/admin"' in html
+    assert 'href="/"' in html
+
+    # 2. Verify GET /admin links to /admin/docs
+    admin_resp = client.get("/admin")
+    assert admin_resp.status_code == 200
+    assert 'href="/admin/docs"' in admin_resp.text

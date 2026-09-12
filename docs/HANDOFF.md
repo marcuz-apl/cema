@@ -1,9 +1,9 @@
-# HANDOFF — CEMA Milestone Checkpoint (v0.9.0+260912c)
+# HANDOFF — CEMA Milestone Checkpoint (v0.9.0+260912d)
 
 ## Current Status & Verification
-- **Version**: `v0.9.0+260912c` (defined in `VERSION`)
-- **Automated Tests**: **51 passed out of 51 tests (100% passing)** via `.venv/bin/pytest -v`.
-  - `tests/test_admin.py` (19 passed): Admin authentication, audit logging, purge tools, backfill triggers, poller status and toggle, Mag floor ≥ 2.0 validation.
+- **Version**: `v0.9.0+260912d` (defined in `VERSION`)
+- **Automated Tests**: **52 passed out of 52 tests (100% passing)** via `.venv/bin/pytest -v`.
+  - `tests/test_admin.py` (20 passed): Admin authentication, audit logging, purge tools, backfill triggers, poller status and toggle, Mag floor ≥ 2.0 validation.
   - `tests/test_analytics_deck.py` (15 passed): Full Playwright E2E browser tests, all 4 tabs, chart rendering, exports.
   - `tests/test_app.py` (12 passed): FastAPI core endpoints, stats, live SSE, GeoJSON boundaries.
   - `tests/test_country_assigner.py` (5 passed): Sovereign and provincial border classifiers.
@@ -17,6 +17,10 @@
   - `data/cema-admin.db`: Admin session and operator action audit log
 
 ## Recent Enhancements & Fixes
+1. **Admin Panel Seismology & Operations Documentation (`/admin/docs`)**:
+   - Added dedicated single-page Knowledge Base covering Seismological Theory, Regional Profiles (Canada & China), and CEMA Monitoring & Alert Engine architecture.
+   - Includes sticky sidebar navigation with scroll-spy, in-page search filter, mobile collapsible accordion, and print/PDF export stylesheet.
+   - Accessible via direct `Docs` header button in `frontend/admin.html` with full dark/light theme parity.
 1. **"2020-Now" Temporal Filter Pill**:
    - Added between "All-Time" and "1Y" in `frontend/index.html` (`[ All-Time ] [ 2020-Now ] [ 1Y ] [ 30D ] [ 7D ] [ 24H ]`).
    - Allows instant inspection of the modern 2020–2026 catalog without loading decades of archive data.
