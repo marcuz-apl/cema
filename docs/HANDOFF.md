@@ -1,7 +1,7 @@
-# HANDOFF — CEMA Milestone Checkpoint (v0.5.0+260912a)
+# HANDOFF — CEMA Milestone Checkpoint (v0.5.0+260912b)
 
 ## Current Status & Verification
-- **Version**: `v0.5.0+260912a` (defined in `VERSION`)
+- **Version**: `v0.5.0+260912b` (defined in `VERSION`)
 - **Automated Tests**: **51 passed out of 51 tests (100% passing)** via `.venv/bin/pytest -v`.
   - `tests/test_admin.py` (19 passed): Admin authentication, audit logging, purge tools, backfill triggers, poller status and toggle, Mag floor ≥ 2.0 validation.
   - `tests/test_analytics_deck.py` (15 passed): Full Playwright E2E browser tests, all 4 tabs, chart rendering, exports.

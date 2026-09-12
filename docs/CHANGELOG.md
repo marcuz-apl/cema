@@ -5,6 +5,17 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
+## [v0.5.0+260912b] - 2026-09-12
+
+### Fixed
+- **Mobile Table Modal Header Responsiveness (Full <= 768px Range)**:
+  - Relocated `#table-modal .modal-header` responsive styling from `@media (max-width: 480px)` to `@media (max-width: 768px)` so intermediate mobile/tablet viewports (481px–768px) no longer fall back to the unconstrained desktop single-row header.
+  - Promoted `#table-modal-close` to be a direct child of `.modal-header` with flex ordering (`order: 2`), ensuring the close button `✕` is always anchored on Row 1 alongside the title on all mobile viewports.
+  - Added responsive `.word-export` toggling under `<= 480px` to streamline buttons to `⬇ CSV` and `🌐 GeoJSON`, guaranteeing both buttons fit side-by-side on Row 2 with zero overflow across any phone screen down to 320px.
+  - Verified across 12 distinct viewport widths (320px to 1440px) with 100% containment inside the modal card.
+
+---
+
 ## [v0.5.0+260912a] - 2026-09-12
 
 ### Changed

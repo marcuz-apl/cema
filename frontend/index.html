@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="/css/style.css?v=v0.5.0+260912a">
+<link rel="stylesheet" href="/css/style.css?v=v0.5.0+260912b">
 </head>
 <body>
 
@@ -297,16 +297,16 @@
         </div>
         <div class="table-export-actions">
           <button class="btn" id="btn-export-csv" title="Export to CSV">
-            <span class="btn-icon">⬇</span> Export CSV
+            <span class="btn-icon">⬇</span> <span class="export-btn-label"><span class="word-export">Export </span>CSV</span>
           </button>
           <button class="btn" id="btn-export-geojson" title="Export to GeoJSON">
-            <span class="btn-icon">🌐</span> Export GeoJSON
+            <span class="btn-icon">🌐</span> <span class="export-btn-label"><span class="word-export">Export </span>GeoJSON</span>
           </button>
         </div>
-        <button class="modal-close" id="table-modal-close" aria-label="Close">
-          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
       </div>
+      <button class="modal-close" id="table-modal-close" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
     </div>
     <div class="modal-body">
       <table class="data-table" id="data-table">
