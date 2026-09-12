@@ -112,7 +112,7 @@ async def lifespan(app: FastAPI):
             except asyncio.CancelledError:
                 pass
 
-app = FastAPI(title="CEMA API", version="0.5.0", lifespan=lifespan)
+app = FastAPI(title="CEMA API", version="0.9.0", lifespan=lifespan)
 
 app.include_router(admin_module.router)
 app.mount("/css", StaticFiles(directory=os.path.join(FRONTEND_DIR, "css")), name="css")
@@ -182,7 +182,7 @@ async def admin_panel():
 
 @app.get("/api/v1/info")
 async def info():
-    return {"service": "CEMA", "version": "0.5.0", "regions": ["canada", "china"]}
+    return {"service": "CEMA", "version": "0.9.0", "regions": ["canada", "china"]}
 
 @app.get("/api/v1/earthquakes")
 async def list_earthquakes(

@@ -5,7 +5,20 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260912b] - 2026-09-12
+## [v0.9.0+260912c] - 2026-09-12
+
+### Changed
+- **Milestone Semantic Versioning Alignment (Phases 6–9)**:
+  - Synchronized project versioning with the 9 milestone phases defined in `PRD.md` and `docs/MILESTONES.md`:
+    - **Phase 6** (Audio Sonification & Boundaries) aligned to **`v0.6.0`** (starting from build `+2609101`).
+    - **Phase 7** (Analytics Deck & Export Studio) aligned to **`v0.7.0`** (starting from build `+2609106`).
+    - **Phase 8** (Operations & Admin Console) aligned to **`v0.8.0`** (starting from build `+2609116`).
+    - **Phase 9** (Hardening, Containerization & Production Readiness) aligned to **`v0.9.0`** (starting from build `+260911m`).
+  - Set active project version to **`v0.9.0+260912c`** across `VERSION`, `PRD.md`, `MILESTONES.md`, FastAPI OpenAPI schema, `/api/v1/info`, Admin console telemetry chips, and asset cache busters.
+
+---
+
+## [v0.9.0+260912b] - 2026-09-12
 
 ### Fixed
 - **Mobile Table Modal Header Responsiveness (Full <= 768px Range)**:
@@ -16,7 +29,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260912a] - 2026-09-12
+## [v0.9.0+260912a] - 2026-09-12
 
 ### Changed
 - **Asset Cache-Busting & No-Cache Headers**:
@@ -26,7 +39,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911x] - 2026-09-11
+## [v0.9.0+260911x] - 2026-09-11
 
 ### Fixed
 - **Mobile Table Modal Export GeoJSON Button Overflow**: Resolved an issue where the Earthquake Data Table card on mobile devices (`<= 768px`) could not hold the "Export GeoJSON" button due to non-wrapping flex containers pushing export buttons off the right edge.
@@ -39,7 +52,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911w] - 2026-09-11
+## [v0.9.0+260911w] - 2026-09-11
 
 ### Changed
 - **Mobile Analytics Deck Scrollable Cards**: Enabled vertical scrolling for cards across all 4 Analytics Deck tabs (`Overview`, `Time`, `Energy`, `Regions`) in mobile view (`max-width: 768px`).
@@ -51,7 +64,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911v] - 2026-09-11
+## [v0.9.0+260911v] - 2026-09-11
 
 ### Changed
 - **Default Collapsed State for LAYERS and MAG**: Both `LAYERS` controls and `MAG` legend widgets are now collapsed by default on initial page load (`collapsed` class and `aria-expanded="false"`), keeping the bottom HUD clean and providing an unobstructed view of the cartography. Tapping either pill instantly expands the respective control panel.
@@ -59,7 +72,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911u] - 2026-09-11
+## [v0.9.0+260911u] - 2026-09-11
 
 ### Changed
 - **Mobile Filter Bar Order & Search Expansion**:
@@ -73,7 +86,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911t] - 2026-09-11
+## [v0.9.0+260911t] - 2026-09-11
 
 ### Fixed
 - **Normal View 'All-Time' Text**: Fixed duplicate text display glitch where 'All-Time' rendered as 'All-TimeAll' by removing the redundant span and restoring standard text button rendering.
@@ -83,7 +96,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911s] - 2026-09-11
+## [v0.9.0+260911s] - 2026-09-11
 
 ### Changed
 - **MAG Filter Visibility on Mobile**: Reordered mobile filter bar layout (`Country -> MAG Filter -> Time Presets`) ensuring the MAG slider (`min=3.0`) is 100% visible on screen without requiring horizontal scrolling.
@@ -96,7 +109,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911r] - 2026-09-11
+## [v0.9.0+260911r] - 2026-09-11
 
 ### Added
 - **Draggable Filter Bar**: Introduced tactile 6-dot drag grip handle (`#filter-bar-drag`) enabling users to position the floating filter bar anywhere in the map viewport without obscuring cartography or controls.
@@ -108,7 +121,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911q] - 2026-09-11
+## [v0.9.0+260911q] - 2026-09-11
 
 ### Changed
 - **2-Letter Mobile Country Selector (CA / CN)**: Replaced full "Canada" and "China" labels with compact "CA" and "CN" (`<span class="region-label-short">`) on mobile screens (`≤768px`), preserving full labels on desktop.
@@ -117,7 +130,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911p] - 2026-09-11
+## [v0.9.0+260911p] - 2026-09-11
 
 ### Added
 - **Mobile Action Burger Menu**: Replaced the 5 desktop action buttons on mobile screens (≤768px) with a single touch-friendly Burger menu button opening an off-canvas Quick Actions drawer (`frontend/index.html`, `frontend/css/style.css`).
@@ -130,7 +143,7 @@ Version format adheres to `versioning-alfazen`: `v<m.n.p>+<yymmddc>`.
 
 ---
 
-## [v0.5.0+260911m] - 2026-09-11
+## [v0.9.0+260911m] - 2026-09-11
 
 ### Added
 - **Docker Compose Production Setup**: Containerized CEMA service on port `4071:4071` with persistent SQLite volume mounting (`./data:/app/data`) (`4fc7188`).

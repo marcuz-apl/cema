@@ -1,6 +1,6 @@
 # Milestones & Phases — CEMA
 
-CEMA milestone progression following the `changelog-curator` and `versioning-alfazen` protocols. Current project version: **`v0.5.0+260911m`**.
+CEMA milestone progression following the `changelog-curator` and `versioning-alfazen` protocols. Current project version: **`v0.9.0+260912c`**.
 
 ---
 
@@ -40,7 +40,7 @@ CEMA milestone progression following the `changelog-curator` and `versioning-alf
 - [x] Dockerfile and Docker Compose service configuration.
 - [x] Anti-bloat code review applied (`ponytail`).
 
-### Phase 6 — Audio Sonification & Boundary Geospatial Enrichment ✅ COMPLETED (v0.5.0+2609101 - v0.5.0+260911h)
+### Phase 6 — Audio Sonification & Boundary Geospatial Enrichment ✅ COMPLETED (v0.6.0+2609101 - v0.6.0+260911h)
 - [x] Seismic Audio Sonification engine: magnitude-scaled acoustic chirps synthesized via Web Audio API.
 - [x] Sovereign border classifier (`backend/ingestion/country_assigner.py`) with world countries GeoJSON.
 - [x] 2-letter postal abbreviation mapping for Canadian provinces/territories and US states.
@@ -48,14 +48,14 @@ CEMA milestone progression following the `changelog-curator` and `versioning-alf
 - [x] Dual contextual header clocks displaying Canada Mountain Standard Time (MST) and China Standard Time (CST/GMT+8).
 - [x] Magnitude floor standardized to M 3.0 across catalog ingestion, backfill, and UI filters.
 
-### Phase 7 — Analytics Deck, Export Studio & Data Table ✅ COMPLETED (v0.5.0+2609106 - v0.5.0+2609114)
+### Phase 7 — Analytics Deck, Export Studio & Data Table ✅ COMPLETED (v0.7.0+2609106 - v0.7.0+2609114)
 - [x] High-density Analytics Deck formatted to single-page A4 landscape print/view.
 - [x] 4-quadrant analytical layout: magnitude distribution, depth scatter, Gutenberg-Richter b-value, cumulative seismic energy.
 - [x] Data Table modal with First/Last pagination and "Latest 1000" vs "All Time" scope toggler.
 - [x] Direct catalog export options: GeoJSON and CSV download.
 - [x] Instant seismic bulletin generator with aligned typography and automated PNG download.
 
-### Phase 8 — Operations & Admin Console ✅ COMPLETED (v0.5.0+2609116 - v0.5.0+260911l)
+### Phase 8 — Operations & Admin Console ✅ COMPLETED (v0.8.0+2609116 - v0.8.0+260911l)
 - [x] Dedicated Operations & Admin Control Center (`frontend/admin.html`, `backend/admin.py`).
 - [x] Secure passkey authentication modal with audit database (`data/cema-admin.db`).
 - [x] Live ingestion pipeline telemetry for USGS, NRCan, and CENC.
@@ -64,7 +64,7 @@ CEMA milestone progression following the `changelog-curator` and `versioning-alf
 - [x] Live Operator.Log terminal streaming backend actions in dark and light themes.
 - [x] In-place catalog deduplication runner and engine reset controls.
 
-### Phase 9 — Hardening, Containerization & Production Readiness ✅ COMPLETED (v0.5.0+260911m)
+### Phase 9 — Hardening, Containerization & Production Readiness ✅ COMPLETED (v0.9.0+260911m - v0.9.0+260912c)
 - [x] Optimized `Dockerfile` and `docker-compose.yml` mapped to host port 4071.
 - [x] Persistent volume mounts for catalog retention (`./data:/app/data`).
 - [x] Standardized pytest configuration (`pytest.ini` with `pythonpath = .`).
